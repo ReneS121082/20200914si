@@ -182,7 +182,7 @@ If you look at the node on which the registry landed (noting that you'll likely 
 ```sh
 $ oc get pod image-registry-58657f5d4d-hmjph -n openshift-image-registry -o wide
 NAME                              READY   STATUS    RESTARTS   AGE     IP            NODE       NOMINATED NODE   READINESS GATES
-image-registry-58657f5d4d-hmjph   1/1     Running   0          2d21h   10.128.2.15   worker02   <none>           <none>
+image-registry-58657f5d4d-hmjph   1/1     Running   0          2d21h   10.128.2.15   node02   <none>           <none>
 ```
 
 > NOTE: the pod name will be different in your environment
@@ -190,9 +190,9 @@ image-registry-58657f5d4d-hmjph   1/1     Running   0          2d21h   10.128.2.
 it is now running on an infra worker:
 
 ```sh
-$ oc get node worker02
+$ oc get node node02
 NAME       STATUS   ROLES    AGE     VERSION
-worker02   Ready    infra    2d21h   v1.16.2
+node02   Ready    infra    2d21h   v1.16.2
 ```
 
 > Notice that the CRD for the image registry's configuration is not

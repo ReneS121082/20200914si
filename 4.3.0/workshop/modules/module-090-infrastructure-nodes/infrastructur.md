@@ -54,15 +54,15 @@ As you can see in the output the mcp infra has a machinecount of 0.
 To add machines to the newly created pool we have to label the machies we want to move to the pool:
 
 ```sh
-[root@bastion ~]# oc label node worker03 node-role.kubernetes.io/infra=
-node/worker03 labeled
+[root@bastion ~]# oc label node node03 node-role.kubernetes.io/infra=
+node/node03 labeled
 ```
 
 and:
 
 ```sh
-[root@bastion ~]# oc label node worker03 node-role.kubernetes.io/worker-
-node/worker03 labeled
+[root@bastion ~]# oc label node node03 node-role.kubernetes.io/worker-
+node/node03 labeled
 ```
 
 From there, our node would be set unschedulable, drained, and rebooted.
@@ -73,10 +73,10 @@ NAME       STATUS   ROLES           AGE   VERSION
 master01   Ready    master,worker   30h   v1.16.2
 master02   Ready    master,worker   30h   v1.16.2
 master03   Ready    master,worker   30h   v1.16.2
-worker01   Ready    worker          30h   v1.16.2
-worker02   Ready    worker          30h   v1.16.2
-worker03   Ready    infra           13h   v1.16.2
-worker04   Ready    infra           13h   v1.16.2
+node01   Ready    worker          30h   v1.16.2
+node02   Ready    worker          30h   v1.16.2
+node03   Ready    infra           13h   v1.16.2
+node04   Ready    infra           13h   v1.16.2
 ```
 
 When our nodes is back, we would proceed with the next step.
@@ -125,8 +125,8 @@ We would then keep track of routers pods as they’re being re-deployed to the i
 ```sh
 [root@service ~]# oc get pods -n openshift-ingress -o wide
 NAME                              READY   STATUS    RESTARTS   AGE   IP               NODE       NOMINATED NODE   READINESS GATES
-router-default-7d66988b48-rkwfm   1/1     Running   0          30h   192.168.100.33   worker03   <none>           <none>
-router-default-7d66988b48-xsl2k   1/1     Running   0          30h   192.168.100.34   worker04   <none>           <none>
+router-default-7d66988b48-rkwfm   1/1     Running   0          30h   192.168.100.33   node03   <none>           <none>
+router-default-7d66988b48-xsl2k   1/1     Running   0          30h   192.168.100.34   node04   <none>           <none>
 ```
 
 By default there are two router, if you have to have more e.g. three infra nodes modify once again the Ingress Controller
@@ -144,9 +144,9 @@ Check the amount of routers
 ```sh
 [root@bastion ~]# oc get pods -n openshift-ingress -o wide
 NAME                              READY   STATUS    RESTARTS   AGE   IP               NODE       NOMINATED NODE   READINESS GATES
-router-default-7d66988b48-9fg6b   1/1     Running   0          20s   192.168.100.33   worker03   <none>           <none>
-router-default-7d66988b48-k485m   1/1     Running   0          11m   192.168.100.34   worker04   <none>           <none>
-router-default-7d66988b48-vvss7   1/1     Running   0          11m   192.168.100.35   worker05   <none>           <none>
+router-default-7d66988b48-9fg6b   1/1     Running   0          20s   192.168.100.33   node03   <none>           <none>
+router-default-7d66988b48-k485m   1/1     Running   0          11m   192.168.100.34   node04   <none>           <none>
+router-default-7d66988b48-vvss7   1/1     Running   0          11m   192.168.100.35   node05   <none>           <none>
 ```
 
 Place the image registry pod on the infra node
@@ -163,10 +163,10 @@ NAME                                              READY   STATUS    RESTARTS   A
 cluster-image-registry-operator-f9697f69d-fzq5j   2/2     Running   0          30h   10.129.0.14   master03   <none>           <none>
 image-registry-6f5d69f654-jxh6h                   1/1     Running   0          58s   10.128.2.18   worker39   <none>           <none>
 node-ca-52ts7                                     1/1     Running   0          14h   10.131.0.41   master01   <none>           <none>
-node-ca-8w2pw                                     1/1     Running   1          14h   10.130.2.3    worker04   <none>           <none>
-node-ca-l8qhg                                     1/1     Running   0          14h   10.128.2.17   worker02   <none>           <none>
-node-ca-lcbk5                                     1/1     Running   0          14h   10.128.0.16   worker01   <none>           <none>
-node-ca-nwt2x                                     1/1     Running   1          14h   10.129.2.3    worker03   <none>           <none>
+node-ca-8w2pw                                     1/1     Running   1          14h   10.130.2.3    node04   <none>           <none>
+node-ca-l8qhg                                     1/1     Running   0          14h   10.128.2.17   node02   <none>           <none>
+node-ca-lcbk5                                     1/1     Running   0          14h   10.128.0.16   node01   <none>           <none>
+node-ca-nwt2x                                     1/1     Running   1          14h   10.129.2.3    node03   <none>           <none>
 node-ca-qcbsg                                     1/1     Running   0          14h   10.129.0.30   master03   <none>           <none>
 node-ca-vm94k                                     1/1     Running   0          14h   10.130.0.42   master02   <none>           <none>
 ```
@@ -220,15 +220,15 @@ As you can see in the output the mcp compute has a machinecount of 0.
 To add machines to the newly created pool we have to label the machies we want to move to the pool:
 
 ```sh
-[root@bastion ~]# oc label node worker01 node-role.kubernetes.io/compute=
-node/worker01 labeled
+[root@bastion ~]# oc label node node01 node-role.kubernetes.io/compute=
+node/node01 labeled
 ```
 
 and:
 
 ```sh
-[root@bastion ~]# oc label node worker01 node-role.kubernetes.io/worker-
-node/worker03 labeled
+[root@bastion ~]# oc label node node01 node-role.kubernetes.io/worker-
+node/node03 labeled
 ```
 
 From there, our node would be set unschedulable, drained, and rebooted.
@@ -239,10 +239,10 @@ NAME       STATUS   ROLES     AGE   VERSION
 master01   Ready    master    30h   v1.16.2
 master02   Ready    master    30h   v1.16.2
 master03   Ready    master    30h   v1.16.2
-worker01   Ready    compute   30h   v1.16.2
-worker02   Ready    compute   30h   v1.16.2
-worker03   Ready    infra     13h   v1.16.2
-worker04   Ready    infra     13h   v1.16.2
+node01   Ready    compute   30h   v1.16.2
+node02   Ready    compute   30h   v1.16.2
+node03   Ready    infra     13h   v1.16.2
+node04   Ready    infra     13h   v1.16.2
 ```
 
 When our nodes is back, we would proceed with the next step.

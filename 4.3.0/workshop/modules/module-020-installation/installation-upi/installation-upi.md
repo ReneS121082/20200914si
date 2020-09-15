@@ -28,16 +28,16 @@ We will define all of our initial virtual machines for the cluster with the foll
 [root@hypervisor ~]# virt-install -n master03.hX.rhaw.io --description "Master03 Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --noreboot --disk pool=ocp_images,bus=virtio,size=50 --graphics vnc --pxe --network network=ocp4-network,mac=52:54:00:a9:98:dd
 ```
 
-### Worker01 Virtual Machine:
+### node01 Virtual Machine:
 
 ```
-[root@hypervisor ~]# virt-install -n worker01.hX.rhaw.io --description "Worker01 Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --noreboot --disk pool=ocp_images,bus=virtio,size=50 --graphics vnc --pxe --network network=ocp4-network,mac=52:54:00:9f:95:87
+[root@hypervisor ~]# virt-install -n node01.hX.rhaw.io --description "node01 Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --noreboot --disk pool=ocp_images,bus=virtio,size=50 --graphics vnc --pxe --network network=ocp4-network,mac=52:54:00:9f:95:87
 ```
 
-### Worker02 Virtual Machine:
+### node02 Virtual Machine:
 
 ```
-[root@hypervisor ~]# virt-install -n worker02.hX.rhaw.io --description "Worker02 Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --noreboot --disk pool=ocp_images,bus=virtio,size=50 --graphics vnc --pxe --network network=ocp4-network,mac=52:54:00:c4:8f:50
+[root@hypervisor ~]# virt-install -n node02.hX.rhaw.io --description "node02 Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --noreboot --disk pool=ocp_images,bus=virtio,size=50 --graphics vnc --pxe --network network=ocp4-network,mac=52:54:00:c4:8f:50
 ```
 
 A good practice is to start bootstrap vm first. Then step by step all other machines. They will start and boot up and they will select the proper CoreOS Image and the ignition file automatically and install and reboot.
@@ -61,8 +61,8 @@ First we need to list all vm's:
  -     master01.hX.rhaw.io            shut off
  -     master02.hX.rhaw.io            shut off
  -     master03.hX.rhaw.io            shut off
- -     worker01.hX.rhaw.io            shut off
- -     worker02.hX.rhaw.io            shut off
+ -     node01.hX.rhaw.io            shut off
+ -     node02.hX.rhaw.io            shut off
  ```
 
 Now we need to poweroff all running machines:
@@ -116,11 +116,11 @@ Now we can power on all our virtual machines with the command:
 ```
 
 ```
-[root@hypervisor ~]# virsh start --domain worker01.hX.rhaw.io
+[root@hypervisor ~]# virsh start --domain node01.hX.rhaw.io
 ```
 
 ```
-[root@hypervisor ~]# virsh start --domain worker02.hX.rhaw.io
+[root@hypervisor ~]# virsh start --domain node02.hX.rhaw.io
 ```
 
 You can observe the installation process if you access the bootstrap node from your service machine with the command:
@@ -147,8 +147,8 @@ NAME       STATUS   ROLES           AGE   VERSION
 master01   Ready    master,worker   10m   v1.16.2
 master02   Ready    master,worker   10m   v1.16.2
 master03   Ready    master,worker   10m   v1.16.2
-worker01   Ready    worker          10m   v1.16.2
-worker02   Ready    worker          10m   v1.16.2
+node01   Ready    worker          10m   v1.16.2
+node02   Ready    worker          10m   v1.16.2
 ```
 
 You should get an output of six machines in state Ready.
@@ -163,8 +163,8 @@ NAME      STATUS    ROLES           AGE   VERSION
 master01  Ready     master,worker   10m   v1.16.2
 master02  Ready     master,worker   10m   v1.16.2
 master03  Ready     master,worker   10m   v1.16.2
-worker01  NotReady  worker          10m   v1.16.2
-worker02  NotReady  worker          10m   v1.16.2
+node01  NotReady  worker          10m   v1.16.2
+node02  NotReady  worker          10m   v1.16.2
 ```
 
 The output lists all of the machines that we created.

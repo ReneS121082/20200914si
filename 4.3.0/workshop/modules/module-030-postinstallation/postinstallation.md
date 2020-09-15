@@ -15,9 +15,9 @@ NAME       STATUS   ROLES           AGE   VERSION
 master01   Ready    master,worker   37h   v1.16.2
 master02   Ready    master,worker   37h   v1.16.2
 master03   Ready    master,worker   37h   v1.16.2
-worker01   Ready    worker          37h   v1.16.2
-worker02   Ready    worker          37h   v1.16.2
-worker03   Ready    worker          21h   v1.16.2
+node01   Ready    worker          37h   v1.16.2
+node02   Ready    worker          37h   v1.16.2
+node03   Ready    worker          21h   v1.16.2
 ```
 
 You should get an output of six machines in state Ready.
@@ -32,9 +32,9 @@ NAME       STATUS      ROLES           AGE   VERSION
 master01   Ready       master,worker   37h   v1.16.2
 master02   Ready       master,worker   37h   v1.16.2
 master03   Ready       master,worker   37h   v1.16.2
-worker01   Ready       worker          37h   v1.16.2
-worker02   NotReady    worker          37h   v1.16.2
-worker03   NotReady    worker          21h   v1.16.2
+node01   Ready       worker          37h   v1.16.2
+node02   NotReady    worker          37h   v1.16.2
+node03   NotReady    worker          21h   v1.16.2
 ...
 ```
 

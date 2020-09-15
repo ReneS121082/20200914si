@@ -89,10 +89,10 @@ etcd-2.ocp4            IN  A   192.168.100.23
 api.ocp4               IN  A   192.168.100.254
 api-int.ocp4           IN  A   192.168.100.254
 *.apps.ocp4            IN  A   192.168.100.254
-worker01.ocp4            IN  A   192.168.100.31
-worker02.ocp4            IN  A   192.168.100.32
-worker03.ocp4            IN  A   192.168.100.33
-worker04.ocp4            IN  A   192.168.100.34
+node01.ocp4            IN  A   192.168.100.31
+node02.ocp4            IN  A   192.168.100.32
+node03.ocp4            IN  A   192.168.100.33
+node04.ocp4            IN  A   192.168.100.34
 _etcd-server-ssl._tcp.ocp4    IN  SRV 0 10    2380 etcd-0.ocp4
 _etcd-server-ssl._tcp.ocp4      IN      SRV     0 10    2380 etcd-1.ocp4
 _etcd-server-ssl._tcp.ocp4      IN      SRV     0 10    2380 etcd-2.ocp4
@@ -179,11 +179,11 @@ ddns-update-style interim;
          host master01 { hardware ethernet 52:54:00:f1:86:29; fixed-address 192.168.100.21; option host-name "master01"; }
          host master02 { hardware ethernet 52:54:00:af:63:f3; fixed-address 192.168.100.22; option host-name "master02"; }
          host master03 { hardware ethernet 52:54:00:a9:98:dd; fixed-address 192.168.100.23; option host-name "master03"; }
-         host worker01 { hardware ethernet 52:54:00:9f:95:87; fixed-address 192.168.100.31; option host-name "worker01"; }
-         host worker02 { hardware ethernet 52:54:00:c4:8f:50; fixed-address 192.168.100.32; option host-name "worker02"; }
-         host worker03 { hardware ethernet 52:54:00:fe:e5:e3; fixed-address 192.168.100.33; option host-name "worker03"; }
+         host node01 { hardware ethernet 52:54:00:9f:95:87; fixed-address 192.168.100.31; option host-name "node01"; }
+         host node02 { hardware ethernet 52:54:00:c4:8f:50; fixed-address 192.168.100.32; option host-name "node02"; }
+         host node03 { hardware ethernet 52:54:00:fe:e5:e3; fixed-address 192.168.100.33; option host-name "node03"; }
          host workstation { hardware ethernet 52:54:00:af:bb:59; fixed-address 192.168.100.253; option host-name "workstation"; }
-         host worker04 { hardware ethernet 52:54:00:f1:79:58; fixed-address 192.168.100.34; option host-name "worker04"; }
+         host node04 { hardware ethernet 52:54:00:f1:79:58; fixed-address 192.168.100.34; option host-name "node04"; }
 }
 ```
 
@@ -417,10 +417,10 @@ frontend router_https
 backend router_https
     balance roundrobin
     option ssl-hello-chk
-    server worker01 worker01.ocp4.hX.rhaw.io:443 check
-    server worker02 worker02.ocp4.hX.rhaw.io:443 check
-    server worker03 worker03.ocp4.hX.rhaw.io:443 check
-    server worker04 worker04.ocp4.hX.rhaw.io:443 check
+    server node01 node01.ocp4.hX.rhaw.io:443 check
+    server node02 node02.ocp4.hX.rhaw.io:443 check
+    server node03 node03.ocp4.hX.rhaw.io:443 check
+    server node04 node04.ocp4.hX.rhaw.io:443 check
 
 frontend router_http
     mode http
@@ -431,10 +431,10 @@ frontend router_http
 backend router_http
     mode http
     balance roundrobin
-    server worker01 worker01.ocp4.hX.rhaw.io:80 check
-    server worker02 worker02.ocp4.hX.rhaw.io:80 check
-    server worker03 worker03.ocp4.hX.rhaw.io:80 check
-    server worker04 worker04.ocp4.hX.rhaw.io:80 check
+    server node01 node01.ocp4.hX.rhaw.io:80 check
+    server node02 node02.ocp4.hX.rhaw.io:80 check
+    server node03 node03.ocp4.hX.rhaw.io:80 check
+    server node04 node04.ocp4.hX.rhaw.io:80 check
 ```
 
 > Important: Please adjust this file according to your environment if needed.

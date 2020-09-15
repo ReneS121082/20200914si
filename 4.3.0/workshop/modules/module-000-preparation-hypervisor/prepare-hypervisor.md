@@ -31,9 +31,9 @@ The following virtual instances needs to be created to install the Openshift Clu
 | 1       | PXE Booted          | 8    | 2    | master01                                             |
 | 1       | PXE Booted          | 8    | 2    | master02                                             |
 | 1       | PXE Booted          | 8    | 2    | master03                                             |
-| 1       | PXE Booted          | 8    | 2    | worker01                                             |
-| 1       | PXE Booted          | 8    | 2    | worker02                                             |
-| 1       | PXE Booted          | 8    | 2    | worker03  and worker 04 ( will be provisioned later) |
+| 1       | PXE Booted          | 8    | 2    | node01                                             |
+| 1       | PXE Booted          | 8    | 2    | node02                                             |
+| 1       | PXE Booted          | 8    | 2    | node03  and worker 04 ( will be provisioned later) |
 
 Each node should have at least 50 GB of virtual disk space.
 
@@ -131,10 +131,10 @@ frontend router_https
 backend router_https
     balance roundrobin
     option ssl-hello-chk
-    server worker01 192.168.100.31:443 check
-    server worker02 192.168.100.32:443 check
-    server worker03 192.168.100.33:443 check
-    server worker04 192.168.100.34:443 check
+    server node01 192.168.100.31:443 check
+    server node02 192.168.100.32:443 check
+    server node03 192.168.100.33:443 check
+    server node04 192.168.100.34:443 check
 
 frontend router_http
     mode http
@@ -145,9 +145,9 @@ frontend router_http
 backend router_http
     mode http
     balance roundrobin
-    server worker01 192.168.100.31:80 check
-    server worker02 192.168.100.32:80 check
-    server worker03 192.168.100.33:80 check
+    server node01 192.168.100.31:80 check
+    server node02 192.168.100.32:80 check
+    server node03 192.168.100.33:80 check
 ```
 
 Now we need to restart haproxy that our changes take place:
