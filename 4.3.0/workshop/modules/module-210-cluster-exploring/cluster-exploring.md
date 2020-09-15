@@ -11,7 +11,7 @@ update the URL accordingly if you like.
 #### For Linux:
 
 ```
-wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.0/openshift-client-linux-4.3.0.tar.gz
+wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.8/openshift-client-linux-4.3.8.tar.gz
 ...
 oc version
 ```
@@ -19,7 +19,7 @@ oc version
 #### For Mac  OSX:
 
 ```
-wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.0/openshift-client-mac-4.3.0.tar.gz
+wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.8/openshift-client-mac-4.3.8.tar.gz
 ...
 
 oc version
@@ -27,7 +27,7 @@ oc version
 
 #### For Windows:
 
-- Download CLI from https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.0/openshift-client-windows-4.3.0.zip
+- Download CLI from https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.8/openshift-client-windows-4.3.8.zip
 - Extract the downloaded zip file.
 - Download download git bash for Windows from http://git-scm.com is recommended
 - Set up PATH on your Windows laptop
@@ -118,7 +118,7 @@ You can also view the current version of the OpenShift cluster and give you a hi
 ```
 $ oc get clusterversion
 NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
-version   4.3.0     True        False         2d1h    Cluster version is 4.3.0
+version   4.3.8     True        False         2d1h    Cluster version is 4.3.8
 ```
 
 If you want to review a list of operators that the cluster version operator is controlling, along with their status, you can ask for a list of the cluster operators:
@@ -126,40 +126,40 @@ If you want to review a list of operators that the cluster version operator is c
 ```
 $ oc get clusteroperator
 NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
-authentication                             4.3.0     True        False         False      2d1h
-cloud-credential                           4.3.0     True        False         False      2d2h
-cluster-autoscaler                         4.3.0     True        False         False      2d1h
-console                                    4.3.0     True        False         False      2d1h
-dns                                        4.3.0     True        False         False      2d2h
-image-registry                             4.3.0     True        False         False      2d1h
-ingress                                    4.3.0     True        False         False      2d1h
-insights                                   4.3.0     True        False         False      2d2h
-kube-apiserver                             4.3.0     True        False         False      2d1h
-kube-controller-manager                    4.3.0     True        False         False      2d1h
-kube-scheduler                             4.3.0     True        False         False      2d2h
-machine-api                                4.3.0     True        False         False      2d2h
-machine-config                             4.3.0     True        False         False      2d2h
-marketplace                                4.3.0     True        False         False      2d1h
-monitoring                                 4.3.0     True        False         False      31h
-network                                    4.3.0     True        False         False      2d2h
-node-tuning                                4.3.0     True        False         False      2d1h
-openshift-apiserver                        4.3.0     True        False         False      2d1h
-openshift-controller-manager               4.3.0     True        False         False      2d1h
-openshift-samples                          4.3.0     True        False         False      2d1h
-operator-lifecycle-manager                 4.3.0     True        False         False      2d2h
-operator-lifecycle-manager-catalog         4.3.0     True        False         False      2d2h
-operator-lifecycle-manager-packageserver   4.3.0     True        False         False      31h
-service-ca                                 4.3.0     True        False         False      2d2h
-service-catalog-apiserver                  4.3.0     True        False         False      2d1h
-service-catalog-controller-manager         4.3.0     True        False         False      2d1h
-storage                                    4.3.0     True        False         False      2d1h
+authentication                             4.3.8     True        False         False      2d1h
+cloud-credential                           4.3.8     True        False         False      2d2h
+cluster-autoscaler                         4.3.8     True        False         False      2d1h
+console                                    4.3.8     True        False         False      2d1h
+dns                                        4.3.8     True        False         False      2d2h
+image-registry                             4.3.8     True        False         False      2d1h
+ingress                                    4.3.8     True        False         False      2d1h
+insights                                   4.3.8     True        False         False      2d2h
+kube-apiserver                             4.3.8     True        False         False      2d1h
+kube-controller-manager                    4.3.8     True        False         False      2d1h
+kube-scheduler                             4.3.8     True        False         False      2d2h
+machine-api                                4.3.8     True        False         False      2d2h
+machine-config                             4.3.8     True        False         False      2d2h
+marketplace                                4.3.8     True        False         False      2d1h
+monitoring                                 4.3.8     True        False         False      31h
+network                                    4.3.8     True        False         False      2d2h
+node-tuning                                4.3.8     True        False         False      2d1h
+openshift-apiserver                        4.3.8     True        False         False      2d1h
+openshift-controller-manager               4.3.8     True        False         False      2d1h
+openshift-samples                          4.3.8     True        False         False      2d1h
+operator-lifecycle-manager                 4.3.8     True        False         False      2d2h
+operator-lifecycle-manager-catalog         4.3.8     True        False         False      2d2h
+operator-lifecycle-manager-packageserver   4.3.8     True        False         False      31h
+service-ca                                 4.3.8     True        False         False      2d2h
+service-catalog-apiserver                  4.3.8     True        False         False      2d1h
+service-catalog-controller-manager         4.3.8     True        False         False      2d1h
+storage                                    4.3.8     True        False         False      2d1h
 ```
 
 Or a more comprehensive way of getting a list of operators running on the cluster, along with the link to the code, the documentation, and the commit that provided the functionality is as follows:
 
 ```
 $ oc adm release info --commits
-Name:      4.3.0
+Name:      4.3.8
 Digest:    sha256:3a516480dfd68e0f87f702b4d7bdd6f6a0acfdac5cd2e9767b838ceede34d70d
 Created:   2020-01-22T02:05:15Z
 OS/Arch:   linux/amd64
@@ -168,8 +168,8 @@ Manifests: 364
 Pull From: quay.io/openshift-release-dev/ocp-release@sha256:3a516480dfd68e0f87f702b4d7bdd6f6a0acfdac5cd2e9767b838ceede34d70d
 
 Release Metadata:
-  Version:  4.3.0
-  Upgrades: 4.2.16, 4.3.0-rc.0, 4.3.0-rc.1, 4.3.0-rc.2, 4.3.0-rc.3
+  Version:  4.3.8
+  Upgrades: 4.2.16, 4.3.8-rc.0, 4.3.8-rc.1, 4.3.8-rc.2, 4.3.8-rc.3
   Metadata:
     description: 
   Metadata:
@@ -849,13 +849,13 @@ $ oc logs deployments/cluster-version-operator -n openshift-cluster-version > op
 [~] $ ttail operatorlog.txt 
 I0213 18:20:07.889982       1 cvo.go:394] Finished syncing cluster version "openshift-cluster-version/version" (177.66µs)
 I0213 18:20:22.890145       1 cvo.go:392] Started syncing cluster version "openshift-cluster-version/version" (2020-02-13 18:20:22.89011061 +0000 UTC m=+181145.748459726)
-I0213 18:20:22.890330       1 cvo.go:424] Desired version from operator is v1.Update{Version:"4.3.0", Image:"quay.io/openshift-release-dev/ocp-release@sha256:3a516480dfd68e0f87f702b4d7bdd6f6a0acfdac5cd2e9767b838ceede34d70d", Force:false}
+I0213 18:20:22.890330       1 cvo.go:424] Desired version from operator is v1.Update{Version:"4.3.8", Image:"quay.io/openshift-release-dev/ocp-release@sha256:3a516480dfd68e0f87f702b4d7bdd6f6a0acfdac5cd2e9767b838ceede34d70d", Force:false}
 I0213 18:20:22.890627       1 cvo.go:394] Finished syncing cluster version "openshift-cluster-version/version" (500.242µs)
 I0213 18:20:37.889810       1 cvo.go:392] Started syncing cluster version "openshift-cluster-version/version" (2020-02-13 18:20:37.889803222 +0000 UTC m=+181160.748152158)
-I0213 18:20:37.889850       1 cvo.go:424] Desired version from operator is v1.Update{Version:"4.3.0", Image:"quay.io/openshift-release-dev/ocp-release@sha256:3a516480dfd68e0f87f702b4d7bdd6f6a0acfdac5cd2e9767b838ceede34d70d", Force:false}
+I0213 18:20:37.889850       1 cvo.go:424] Desired version from operator is v1.Update{Version:"4.3.8", Image:"quay.io/openshift-release-dev/ocp-release@sha256:3a516480dfd68e0f87f702b4d7bdd6f6a0acfdac5cd2e9767b838ceede34d70d", Force:false}
 I0213 18:20:37.889978       1 cvo.go:394] Finished syncing cluster version "openshift-cluster-version/version" (172.35µs)
 I0213 18:20:52.890190       1 cvo.go:392] Started syncing cluster version "openshift-cluster-version/version" (2020-02-13 18:20:52.890166798 +0000 UTC m=+181175.748515861)
-I0213 18:20:52.890329       1 cvo.go:424] Desired version from operator is v1.Update{Version:"4.3.0", Image:"quay.io/openshift-release-dev/ocp-release@sha256:3a516480dfd68e0f87f702b4d7bdd6f6a0acfdac5cd2e9767b838ceede34d70d", Force:false}
+I0213 18:20:52.890329       1 cvo.go:424] Desired version from operator is v1.Update{Version:"4.3.8", Image:"quay.io/openshift-release-dev/ocp-release@sha256:3a516480dfd68e0f87f702b4d7bdd6f6a0acfdac5cd2e9767b838ceede34d70d", Force:false}
 I0213 18:20:52.890552       1 cvo.go:394] Finished syncing cluster version "openshift-cluster-version/version" (377.078µs)
 ```
 

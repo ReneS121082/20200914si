@@ -218,33 +218,33 @@ We need to confirm that all components are up and running.
 ```
 [root@services ~]# watch -n5 oc get clusteroperators
 NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
-authentication                             4.3.0     True        False         False      4m41s
-cloud-credential                           4.3.0     True        False         False      25m
-cluster-autoscaler                         4.3.0     True        False         False      15m
-console                                    4.3.0     True        False         False      11m
-dns                                        4.3.0     True        False         False      19m
-image-registry                             4.3.0     True        False         False      16m
-ingress                                    4.3.0     True        False         False      15m
-insights                                   4.3.0     True        False         False      21m
-kube-apiserver                             4.3.0     True        False         False      17m
-kube-controller-manager                    4.3.0     True        False         False      17m
-kube-scheduler                             4.3.0     True        False         False      18m
-machine-api                                4.3.0     True        False         False      20m
-machine-config                             4.3.0     True        False         False      19m
-marketplace                                4.3.0     True        False         False      15m
-monitoring                                 4.3.0     True        False         False      10m
-network                                    4.3.0     True        False         False      21m
-node-tuning                                4.3.0     True        False         False      15m
-openshift-apiserver                        4.3.0     True        False         False      15m
-openshift-controller-manager               4.3.0     True        False         False      18m
-openshift-samples                          4.3.0     True        False         False      14m
-operator-lifecycle-manager                 4.3.0     True        False         False      20m
-operator-lifecycle-manager-catalog         4.3.0     True        False         False      20m
-operator-lifecycle-manager-packageserver   4.3.0     True        False         False      15m
-service-ca                                 4.3.0     True        False         False      21m
-service-catalog-apiserver                  4.3.0     True        False         False      16m
-service-catalog-controller-manager         4.3.0     True        False         False      16m
-storage                                    4.3.0     True        False         False      16m
+authentication                             4.3.8     True        False         False      4m41s
+cloud-credential                           4.3.8     True        False         False      25m
+cluster-autoscaler                         4.3.8     True        False         False      15m
+console                                    4.3.8     True        False         False      11m
+dns                                        4.3.8     True        False         False      19m
+image-registry                             4.3.8     True        False         False      16m
+ingress                                    4.3.8     True        False         False      15m
+insights                                   4.3.8     True        False         False      21m
+kube-apiserver                             4.3.8     True        False         False      17m
+kube-controller-manager                    4.3.8     True        False         False      17m
+kube-scheduler                             4.3.8     True        False         False      18m
+machine-api                                4.3.8     True        False         False      20m
+machine-config                             4.3.8     True        False         False      19m
+marketplace                                4.3.8     True        False         False      15m
+monitoring                                 4.3.8     True        False         False      10m
+network                                    4.3.8     True        False         False      21m
+node-tuning                                4.3.8     True        False         False      15m
+openshift-apiserver                        4.3.8     True        False         False      15m
+openshift-controller-manager               4.3.8     True        False         False      18m
+openshift-samples                          4.3.8     True        False         False      14m
+operator-lifecycle-manager                 4.3.8     True        False         False      20m
+operator-lifecycle-manager-catalog         4.3.8     True        False         False      20m
+operator-lifecycle-manager-packageserver   4.3.8     True        False         False      15m
+service-ca                                 4.3.8     True        False         False      21m
+service-catalog-apiserver                  4.3.8     True        False         False      16m
+service-catalog-controller-manager         4.3.8     True        False         False      16m
+storage                                    4.3.8     True        False         False      16m
 ```
 
   When all of the cluster Operators are available (the kube-apiserver operator is last in state PROGRESSING True and takes roughly 15min to finish), we can complete the installation.
