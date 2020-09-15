@@ -6,20 +6,20 @@
 
 ## Fix firewall settings:
 
-The next steps will be done on services.hX.rhaw.io
+The next steps will be done on bastion.hX.rhaw.io
 
-First we need to open firewall ports on the services machine:
-
-```
-[root@services ~]# firewall-cmd --add-service={dhcp,tftp,http,https,dns} --permanent
-```
+First we need to open firewall ports on the bastion machine:
 
 ```
-[root@services ~]# firewall-cmd --add-port={6443/tcp,22623/tcp,8080/tcp} --permanent
+[root@bastion ~]# firewall-cmd --add-service={dhcp,tftp,http,https,dns} --permanent
 ```
 
 ```
-[root@services ~]# firewall-cmd --reload
+[root@bastion ~]# firewall-cmd --add-port={6443/tcp,22623/tcp,8080/tcp} --permanent
+```
+
+```
+[root@bastion ~]# firewall-cmd --reload
 ```
 
 ## Setup Bind Named DNS server:
@@ -29,7 +29,7 @@ After that we start with configuring the named DNS server:
 Comment out the two lines below in /etc/named.conf:
 
 ```
-[root@services ~]# vim /etc/named.conf
+[root@bastion ~]# vim /etc/named.conf
 ```
 
 ```
@@ -63,7 +63,7 @@ zone "hX.rhaw.io" IN {
 After defining this zone we need to create the zone file in: /var/named/hX.rhaw.io.db
 
 ```
-[root@services ~]#  vim /var/named/hX.rhaw.io.db
+[root@bastion ~]#  vim /var/named/hX.rhaw.io.db
 ```
 
 ```
@@ -77,7 +77,7 @@ $TTL     1D
                                                                              )
                   IN  NS  dns.ocp4.hX.rhaw.io.
 dns.ocp4            IN  A   192.168.100.254
-services            IN CNAME dns.ocp4
+bastion            IN CNAME dns.ocp4
 workstation            IN  A   192.168.100.253
 bootstrap.ocp4            IN  A   192.168.100.10
 master01.ocp4            IN  A   192.168.100.21
@@ -101,21 +101,21 @@ _etcd-server-ssl._tcp.ocp4      IN      SRV     0 10    2380 etcd-2.ocp4
 > Please adjust these files to your needs or just take these files exactly as they are!!!
 
 ```
-[root@services ~]# systemctl restart named
+[root@bastion ~]# systemctl restart named
 ```
 
 To test our DNS server we just execute:
 
 ```
-[root@services ~]# dig @localhost -t srv _etcd-server-ssl._tcp.ocp4.hX.rhaw.io
+[root@bastion ~]# dig @localhost -t srv _etcd-server-ssl._tcp.ocp4.hX.rhaw.io
 ```
 
-Now we need to change the DNS Resolution on Services Machine and Workstation Machine as well:
+Now we need to change the DNS Resolution on bastion Machine and Workstation Machine as well:
 
 On both Machines type in:
 
 ```
-[root@services ~]# nmcli connection show
+[root@bastion ~]# nmcli connection show
 NAME  UUID                                  TYPE      DEVICE
 ens3  191bce9e-d55b-471a-a0fa-c6f060d2e144  ethernet  ens3
 ```
@@ -123,23 +123,23 @@ ens3  191bce9e-d55b-471a-a0fa-c6f060d2e144  ethernet  ens3
 Now we need to modify the connection to use our new DNS Server on both Virtual Machines:
 
 ```
-[root@services ~]# nmcli connection modify ens3  ipv4.dns "192.168.100.254"
+[root@bastion ~]# nmcli connection modify ens3  ipv4.dns "192.168.100.254"
 ```
 
 After that:
 
 ```
-[root@services ~]# nmcli connection reload
+[root@bastion ~]# nmcli connection reload
 ```
 
 ```
-[root@services ~]# nmcli connection up ens3
+[root@bastion ~]# nmcli connection up ens3
 ```
 
 We can test if our Resolution is correct with:
 
 ```
-[root@services ~]# host bootstrap.ocp4.hX.rhaw.io
+[root@bastion ~]# host bootstrap.ocp4.hX.rhaw.io
 ```
 
 The output should be:
@@ -157,7 +157,7 @@ Now we can step forward.
 We need to create / update the /etc/dhcp/dhcpd.conf:
 
 ```
-[root@services ~]# vim /etc/dhcp/dhcpd.conf
+[root@bastion ~]# vim /etc/dhcp/dhcpd.conf
 ```
 
 ```
@@ -196,13 +196,13 @@ ddns-update-style interim;
 first we need to populate the default file for tftpboot:
 
 ```
-[root@services ~]# mkdir -p  /var/lib/tftpboot/pxelinux.cfg
+[root@bastion ~]# mkdir -p  /var/lib/tftpboot/pxelinux.cfg
 ```
 
 then we need to create the default file with the following content:
 
 ```
-[root@services ~]# vim /var/lib/tftpboot/pxelinux.cfg/default
+[root@bastion ~]# vim /var/lib/tftpboot/pxelinux.cfg/default
 ```
 
 ```
@@ -280,13 +280,13 @@ label worker
 Now we need to copy syslinux for PXE boot:
 
 ```
-[root@services ~]# cp -rvf /usr/share/syslinux/* /var/lib/tftpboot
+[root@bastion ~]# cp -rvf /usr/share/syslinux/* /var/lib/tftpboot
 ```
 
 After that start your TFTP server:
 
 ```
-[root@services ~]# systemctl start tftp
+[root@bastion ~]# systemctl start tftp
 ```
 
 ## Configure Webserver to host Red Hat Core OS images:
@@ -294,7 +294,7 @@ After that start your TFTP server:
 First of all we need to change the configuration of the httpd from Listen on port 80 to Listen on Port 8080:
 
 ```
-[root@services ~]# vim /etc/httpd/conf/httpd.conf
+[root@bastion ~]# vim /etc/httpd/conf/httpd.conf
 ```
 
 Search for the Line:
@@ -312,55 +312,55 @@ Listen 8080
 After that we restart httpd that our changes taking place:
 
 ```
-[root@services ~]# systemctl restart httpd
+[root@bastion ~]# systemctl restart httpd
 ```
 
 Now we need to create a directory for hosting the kernel and initramfs for PXE boot:
 
 ```
-[root@services ~]# mkdir -p /var/lib/tftpboot/openshift4/4.2.0/
+[root@bastion ~]# mkdir -p /var/lib/tftpboot/openshift4/4.2.0/
 ```
 
 access this directory:
 
 ```
-[root@services ~]# cd /var/lib/tftpboot/openshift4/4.2.0/
+[root@bastion ~]# cd /var/lib/tftpboot/openshift4/4.2.0/
 ```
 
 and download the kernel file to this directory:
 
 ```
-[root@services ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/rhcos-4.2.0-x86_64-installer-kernel
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/rhcos-4.2.0-x86_64-installer-kernel
 ```
 
 Then the CoreOS Installer initramfs image:
 
 ```
-[root@services ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/rhcos-4.2.0-x86_64-installer-initramfs.img
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/rhcos-4.2.0-x86_64-installer-initramfs.img
 ```
 
 Now we ned to relabel the files for selinux:
 
 ```
-[root@services ~]# restorecon -RFv .
+[root@bastion ~]# restorecon -RFv .
 ```
 
 Next we need to host the Red Hat Core OS metal BIOS image:
 
 ```
-[root@services ~]# mkdir -p /var/www/html/openshift4/4.2.0/images/
+[root@bastion ~]# mkdir -p /var/www/html/openshift4/4.2.0/images/
 ```
 
 ```
-[root@services ~]# cd  /var/www/html/openshift4/4.2.0/images/
+[root@bastion ~]# cd  /var/www/html/openshift4/4.2.0/images/
 ```
 
 ```
-[root@services ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/rhcos-4.2.0-x86_64-metal-bios.raw.gz
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/rhcos-4.2.0-x86_64-metal-bios.raw.gz
 ```
 
 ```
-[root@services ~]# restorecon -RFv .
+[root@bastion ~]# restorecon -RFv .
 ```
 
 ## Setup HAProxy as Loadbalancer:
@@ -370,11 +370,11 @@ We are going step by step to the end of our preparations. The last service we ne
 Use the following code snippet and place it in /etc/haproxy. Please make a backup of your default haproxy.conf before.
 
 ```
-[root@services ~]# cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.default
+[root@bastion ~]# cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.default
 ```
 
 ```
-[root@services ~]# vim /etc/haproxy/haproxy.cfg
+[root@bastion ~]# vim /etc/haproxy/haproxy.cfg
 ```
 
 /etc/haproxy/haproxy.cfg:
@@ -442,57 +442,57 @@ backend router_http
 Now we need to configure SElinux to use custom ports in SELinux:
 
 ```
-[root@services ~]# semanage port  -a 22623 -t http_port_t -p tcp
+[root@bastion ~]# semanage port  -a 22623 -t http_port_t -p tcp
 ```
 
 ```
-[root@services ~]# semanage port -a 6443 -t http_port_t -p tcp
+[root@bastion ~]# semanage port -a 6443 -t http_port_t -p tcp
 ```
 
 ```
-[root@services ~]# semanage port -a 32700 -t http_port_t -p tcp
+[root@bastion ~]# semanage port -a 32700 -t http_port_t -p tcp
 ```
 
 ## Install Local Registry
 
-For our disconnected Installation we need to install an own local Registry on our services Machine. For that we first need to install the openshift client tools:
+For our disconnected Installation we need to install an own local Registry on our bastion Machine. For that we first need to install the openshift client tools:
 
 ```
-[root@services ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.2.14/openshift-client-linux-4.2.14.tar.gz
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.2.14/openshift-client-linux-4.2.14.tar.gz
 ```
 
 After downloading the client tools we need to extract them:
 
 ```
-[root@services ~]# tar -xvf openshift-client-linux-4.2.14.tar.gz
+[root@bastion ~]# tar -xvf openshift-client-linux-4.2.14.tar.gz
 ```
 
-Then we need to copy the files to the proper location on our services machine:
+Then we need to copy the files to the proper location on our bastion machine:
 
 ```
-[root@services ~]# cp -v oc kubectl /usr/local/bin/
+[root@bastion ~]# cp -v oc kubectl /usr/local/bin/
 ```
 
 If not already done we need to install several packages:
 
 ```
-[root@services ~]# yum -y install podman httpd-tools
+[root@bastion ~]# yum -y install podman httpd-tools
 ```
 
 Now we need to create the needed folders for our registry
 
 ```
-[root@services ~]# mkdir -p /opt/registry/{auth,certs,data}
+[root@bastion ~]# mkdir -p /opt/registry/{auth,certs,data}
 ```
 
 Now we need to Provide a certificate for the registry. If we do not have an existing, trusted certificate authority, we can generate a self-signed certificate:
 
 ```
-[root@services ~]# cd /opt/registry/certs
+[root@bastion ~]# cd /opt/registry/certs
 ```
 
 ```
-[root@services ~]# openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt
+[root@bastion ~]# openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt
 ```
 
 The procedure will ask several questions that need to be answered:
@@ -509,7 +509,7 @@ The procedure will ask several questions that need to be answered:
 After creating the registry we need to create a username and password for our registry
 
 ```
-[root@services ~]# htpasswd -bBc /opt/registry/auth/htpasswd <user_name> <password>
+[root@bastion ~]# htpasswd -bBc /opt/registry/auth/htpasswd <user_name> <password>
 ```
 
 Username and Password should be: student and redhat
@@ -517,7 +517,7 @@ Username and Password should be: student and redhat
 The next step is to run our local registry with the following command:
 
 ```
-[root@services ~]# podman run --name mirror-registry -p 5000:5000 \ 
+[root@bastion ~]# podman run --name mirror-registry -p 5000:5000 \ 
      -v /opt/registry/data:/var/lib/registry:z \
      -v /opt/registry/auth:/auth:z \
      -e "REGISTRY_AUTH=htpasswd" \
@@ -532,37 +532,37 @@ The next step is to run our local registry with the following command:
 After done this we need to open several ports on our registry node:
 
 ```
-[root@services ~]# firewall-cmd --add-port=5000/tcp --zone=internal --permanent 
+[root@bastion ~]# firewall-cmd --add-port=5000/tcp --zone=internal --permanent 
 ```
 
 ```
-[root@services ~]# # firewall-cmd --add-port=5000/tcp --zone=public   --permanent
+[root@bastion ~]# # firewall-cmd --add-port=5000/tcp --zone=public   --permanent
 ```
 
 ```
-[root@services ~]# firewall-cmd --reload
+[root@bastion ~]# firewall-cmd --reload
 ```
 
 Now we need to add the self created certificate to the the local trust:
 
 ```
-[root@services ~]# cp /opt/registry/certs/domain.crt /etc/pki/ca-trust/source/anchors/
+[root@bastion ~]# cp /opt/registry/certs/domain.crt /etc/pki/ca-trust/source/anchors/
 ```
 
 ```
-[root@services ~]# update-ca-trust
+[root@bastion ~]# update-ca-trust
 ```
 
-Now we have created all of our services. the next step is to prepare the installation from the Openshift perspective
+Now we have created all of our bastion. the next step is to prepare the installation from the Openshift perspective
 
 ## Configure OpenShift installer and CLI binary:
 
-From now on, unless otherwise stated, all steps will be performed on services.hX.rhaw.io
+From now on, unless otherwise stated, all steps will be performed on bastion.hX.rhaw.io
 
 We need to login with ssh and the username and password provided through the instructor:
 
 ```
-ssh root@services.hX.rhaw.io
+ssh root@bastion.hX.rhaw.io
 ```
 
 First of all we need to download and install the Openshift client and the installer.
@@ -570,37 +570,37 @@ First of all we need to download and install the Openshift client and the instal
 > Important: Please be sure that you downloaded the correct versions. If you have a version mismatch ???
 
 ```
-[root@services ~]# cd /root
+[root@bastion ~]# cd /root
 ```
 
 ```
-[root@services ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.2.14/openshift-install-linux-4.2.14.tar.gz
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.2.14/openshift-install-linux-4.2.14.tar.gz
 ```
 
 ```
-[root@services ~]# tar -xvf openshift-install-linux-4.2.14.tar.gz
+[root@bastion ~]# tar -xvf openshift-install-linux-4.2.14.tar.gz
 ```
 
 ```
-[root@services ~]# cp -v oc kubectl openshift-install /usr/local/bin/
+[root@bastion ~]# cp -v oc kubectl openshift-install /usr/local/bin/
 ```
 
 Now we need to create a SSH key pair to access to use later to access the CoreOS nodes
 
 ```
-[root@services ~]# ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa
+[root@bastion ~]# ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa
 ```
 
 ```
-[root@services ~]# cd /root
+[root@bastion ~]# cd /root
 ```
 
 ```
-[root@services ~]# mkdir -p ocp4
+[root@bastion ~]# mkdir -p ocp4
 ```
 
 ```
-[root@services ~]# cd ocp4
+[root@bastion ~]# cd ocp4
 ```
 
 For the disconnected Installation we need the Pull Secret downloaded from https://cloud.redhat.com.
@@ -610,7 +610,7 @@ The file is named: pull-secret.text
 The Pull Secret for the local Registry needs to be created like this:
 
 ```
-[root@services ~]# echo -n 'student:redhat' | base64 -w0 
+[root@bastion ~]# echo -n 'student:redhat' | base64 -w0 
 ```
 
 The output is something like this:
@@ -622,7 +622,7 @@ BGVtbYk3ZHAtqXs=
 Now we need to make a copy in json format of the original pull secret file downloaded from cloud.redhat.com:
 
 ```
-[root@services ~]# cat ./pull-secret.text | jq .  > /root/ocp4/pull-secret-local.text
+[root@bastion ~]# cat ./pull-secret.text | jq .  > /root/ocp4/pull-secret-local.text
 ```
 
 The file looks similar to the example below:
@@ -653,7 +653,7 @@ The file looks similar to the example below:
 Now we need to edit the new file like this:
 
 ```
-[root@services ~]# vim /root/ocp4/pull-secret-local.text
+[root@bastion ~]# vim /root/ocp4/pull-secret-local.text
 ```
 
 We just need to add a section to this file that describes the local registry:
@@ -661,7 +661,7 @@ We just need to add a section to this file that describes the local registry:
 ```
 "auths": {
 ...
- "<services.hX.rhaw.io:5000": {
+ "<bastion.hX.rhaw.io:5000": {
  "auth": "BGVtbYk3ZHAtqXs=",
  "email": "root@hX.rhaw.io"
  },
@@ -673,33 +673,33 @@ After we have done this we need to mirror the needed images to our registry.
 We need to set some variables so that we can mirror the correct content:
 
 ```
-[root@services ~]# export OCP_RELEASE=4.2.14
+[root@bastion ~]# export OCP_RELEASE=4.2.14
 ```
 
 ```
-[root@services ~]# export LOCAL_REGISTRY='services.hX.rhaw.io:5000'
+[root@bastion ~]# export LOCAL_REGISTRY='bastion.hX.rhaw.io:5000'
 ```
 
 ```
-[root@services ~]# export LOCAL_REPOSITORY='ocp4/openshift4' 
+[root@bastion ~]# export LOCAL_REPOSITORY='ocp4/openshift4' 
 ```
 
 ```
-[root@services ~]# export PRODUCT_REPO='openshift-release-dev'
+[root@bastion ~]# export PRODUCT_REPO='openshift-release-dev'
 ```
 
 ```
-[root@services ~]# export LOCAL_SECRET_JSON='/root/ocp4/pull-secret-local.text'
+[root@bastion ~]# export LOCAL_SECRET_JSON='/root/ocp4/pull-secret-local.text'
 ```
 
 ```
-[root@services ~]# export RELEASE_NAME="ocp-release"
+[root@bastion ~]# export RELEASE_NAME="ocp-release"
 ```
 
 After we have done this we can now mirror the images ... +/- 99 images.
 
 ```
-[root@services ~]# oc adm -a ${LOCAL_SECRET_JSON} release mirror \
+[root@bastion ~]# oc adm -a ${LOCAL_SECRET_JSON} release mirror \
      --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE} \
      --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
      --to-release image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}
@@ -708,19 +708,19 @@ After we have done this we can now mirror the images ... +/- 99 images.
 After the mirroring has been done we can create an installation program that is based on the content that we have just mirrored:
 
 ```
-[root@services ~]# oc adm -a ${LOCAL_SECRET_JSON} release extract --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}"
+[root@bastion ~]# oc adm -a ${LOCAL_SECRET_JSON} release extract --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}"
 ```
 
 the last step is to optain the ssh public we earlier created:
 
 ```
-[root@services ~]# cat /root/.ssh/id_rsa.pub
+[root@bastion ~]# cat /root/.ssh/id_rsa.pub
 ```
 
 Next we need to create the ignition files that will be used during the installation:
 
 ```
-[root@services ~]# vim /root/ocp4/install-config-base.yaml
+[root@bastion ~]# vim /root/ocp4/install-config-base.yaml
 ```
 
 Now we need to create the install-config-base.yaml file:
@@ -753,7 +753,7 @@ pullSecret: 'SELF CREATED'
 sshKey: 'SSH PUBLIC KEY'
 imageContentSources:
  - mirrors:
- - services.hX.rhaw.io:5000/<repo_name>/release
+ - bastion.hX.rhaw.io:5000/<repo_name>/release
  source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
 ```
@@ -761,11 +761,11 @@ imageContentSources:
 Now we will create the ignition files:
 
 ```
-[root@services ~]# cd /root/ocp4/
+[root@bastion ~]# cd /root/ocp4/
 ```
 
 ```
-[root@services ~]# cp install-config-base.yaml install-config.yaml
+[root@bastion ~]# cp install-config-base.yaml install-config.yaml
 ```
 
 Don't forget to copy this file this is very important!!! If this file is missing, then the creation of the ignition files will fail!!!
@@ -773,7 +773,7 @@ Don't forget to copy this file this is very important!!! If this file is missing
 > Everytime you recreate the ignition files you need to ensure that the ocp4 directory is empty except the install-config-base.yaml file. Very Important the .openshift_install_state.json file needs to be deleted before you recreate the ignition file. This file contains the installation certificates and can damage your installation when you use old certificates in new ignition files.
 
 ```
-[root@services ~]# openshift-install create ignition-configs
+[root@bastion ~]# openshift-install create ignition-configs
 ```
 
 ```
@@ -792,21 +792,21 @@ drwxr-xr-x. 2 root root      50 29. Nov 18:01 auth
 Now we need to copy the files to our httpd server:
 
 ```
-[root@services ~]# mkdir -p /var/www/html/openshift4/4.2.0/ignitions
+[root@bastion ~]# mkdir -p /var/www/html/openshift4/4.2.0/ignitions
 ```
 
 ```
-[root@services ~]# cp -v *.ign /var/www/html/openshift4/4.2.0/ignitions/
+[root@bastion ~]# cp -v *.ign /var/www/html/openshift4/4.2.0/ignitions/
 ```
 
 ```
-[root@services ~]# restorecon -RFv /var/www/html/
+[root@bastion ~]# restorecon -RFv /var/www/html/
 ```
 
 Now we are done with the installation and can start the initial cluster installation.
 
 ```
-[root@services ~]# systemctl enable --now haproxy.service dhcpd httpd tftp named
+[root@bastion ~]# systemctl enable --now haproxy.service dhcpd httpd tftp named
 ```
 
 > Important: ensure every time that haproxy is up and running. Sometimes during reboot of your service machine it is not coming up.
@@ -814,19 +814,19 @@ Now we are done with the installation and can start the initial cluster installa
 To ensure type:
 
 ```
-[root@services ~]# systemctl status haproxy
+[root@bastion ~]# systemctl status haproxy
 ```
 
 If the state is failed then type:
 
 ```
-[root@services ~]# systemctl restart haproxy
+[root@bastion ~]# systemctl restart haproxy
 ```
 
 re-check again:
 
 ```
-[root@services ~]# systemctl status haproxy
+[root@bastion ~]# systemctl status haproxy
 ```
 
 Now we are able to install our virtual machines for installing openshift cluster. The Procedure of the installation is similar to the connected installation.

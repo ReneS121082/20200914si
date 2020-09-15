@@ -30,7 +30,7 @@ Now we need to do the same steps as in the cluster installation. This steps are:
 Id    Name                           Status
 ----------------------------------------------------
  15    workstation.hX.rhaw.io    laufend
- 18    services.hX.rhaw.io       laufend
+ 18    bastion.hX.rhaw.io       laufend
  20    bootstrap.hX.rhaw.io      laufend
  22    master01.hX.rhaw.io       laufend
  24    master02.hX.rhaw.io       laufend
@@ -42,7 +42,7 @@ Id    Name                           Status
 After the worker03 node has been installed we can't see it in the list of nodes:
 
 ```
-[root@services ~]# oc get nodes
+[root@bastion ~]# oc get nodes
 NAME       STATUS   ROLES           AGE    VERSION
 master01   Ready    master,worker   24h    v1.16.2
 master02   Ready    master,worker   24h    v1.16.2
@@ -54,7 +54,7 @@ worker02   Ready    worker          24h    v1.16.2
 When we look at the csr's in our cluster we can see that some are in pending mode. This is because of our new node. 
 
 ```
-[root@services ~]# oc get csr
+[root@bastion ~]# oc get csr
 NAME        AGE     REQUESTOR                                                                   CONDITION
 csr-66q24   48m     system:serviceaccount:openshift-machine-config-operator:node-bootstrapper   Pending
 csr-9p5kh   2m47s   system:serviceaccount:openshift-machine-config-operator:node-bootstrapper   Pending
@@ -72,7 +72,7 @@ oc get csr -o name | xargs oc adm certificate approve
 We need a secound round:
 
 ```
-[root@services ~]# oc get csr
+[root@bastion ~]# oc get csr
 ```
 
 ```
@@ -91,7 +91,7 @@ oc adm certificate approve CERTIFICATE
 After a couple of minutes the machine should be up and running and part of the cluster as a third worker node:
 
 ```
-[root@services ~]# oc get nodes
+[root@bastion ~]# oc get nodes
 NAME       STATUS   ROLES           AGE    VERSION
 master01   Ready    master,worker   24h    v1.16.2
 master02   Ready    master,worker   24h    v1.16.2

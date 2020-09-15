@@ -1,16 +1,16 @@
 After we have done the installation we can check the cluster is up and running type in the following command:
 
 ```sh
-[root@services ~]# export KUBECONFIG=/root/ocp4/auth/kubeconfig
+[root@bastion ~]# export KUBECONFIG=/root/ocp4/auth/kubeconfig
 ```
 
 ```sh
-[root@services ~]# oc whoami
+[root@bastion ~]# oc whoami
 system:admin
 ```
 
 ```sh
-[root@services ~]# oc get nodes
+[root@bastion ~]# oc get nodes
 NAME       STATUS   ROLES           AGE   VERSION
 master01   Ready    master,worker   37h   v1.16.2
 master02   Ready    master,worker   37h   v1.16.2
@@ -27,7 +27,7 @@ You should get an output of six machines in state Ready.
 When you add machines to a cluster, two pending certificates signing request (CSRs) are generated for each machine that you added. You must verify that these CSRs are approved or, if necessary, approve them yourself.
 
 ```sh
-[root@services ~]# oc get nodes
+[root@bastion ~]# oc get nodes
 NAME       STATUS      ROLES           AGE   VERSION
 master01   Ready       master,worker   37h   v1.16.2
 master02   Ready       master,worker   37h   v1.16.2
@@ -43,7 +43,7 @@ The output lists all of the machines that we created.
 Now we need to review the pending certificate signing requests (CSRs) and ensure that the you see a client and server request with `Pending` or `Approved` status for each machine that you added to the cluster:
 
 ```sh
-[root@services ~]# oc get csr
+[root@bastion ~]# oc get csr
 NAME        AGE     REQUESTOR                                                                   CONDITION
 csr-8b2br   15m     system:serviceaccount:openshift-machine-config-operator:node-bootstrapper   Pending
 csr-8vnps   15m     system:serviceaccount:openshift-machine-config-operator:node-bootstrapper   Pending
@@ -57,20 +57,20 @@ csr-c57lv   5m26s   system:node:ip-10-0-95-157.us-east-2.compute.internal       
 Now we need to approve pending certificates:
 
 ```sh
-[root@services ~]# oc adm certificate approve csr-bfd72
+[root@bastion ~]# oc adm certificate approve csr-bfd72
 ```
 
 Tip:
 To approve all pending certificates run the folloing command:
 
 ```sh
-[root@services ~]# oc get csr -o name | xargs oc adm certificate approve
+[root@bastion ~]# oc get csr -o name | xargs oc adm certificate approve
 ```
 
 After that we can check the csr status again and validate that they are all "Approved,Issued":
 
 ```sh
-[root@services ~]# oc get csr
+[root@bastion ~]# oc get csr
 ```
 
 ## Completing installation on User Provisioned Infrastructure:
@@ -80,7 +80,7 @@ After we complete the operator configuration, you can finish installing the clus
 We need to confirm that all components are up and running.
 
 ```sh
-[root@services ~]# watch -n5 oc get clusteroperators
+[root@bastion ~]# watch -n5 oc get clusteroperators
 NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
 authentication                             4.3.8     True        False         False      10m
 cloud-credential                           4.3.8     True        False         False      22m

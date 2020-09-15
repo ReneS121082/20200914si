@@ -6,20 +6,20 @@
 
 ## Fix firewall settings:
 
-The next steps will be done on services.hX.rhaw.io
+The next steps will be done on bastion.hX.rhaw.io
 
-First we need to open firewall ports on the services machine:
-
-```
-[root@services ~]# firewall-cmd --add-service={dhcp,tftp,http,https,dns} --permanent
-```
+First we need to open firewall ports on the bastion machine:
 
 ```
-[root@services ~]# firewall-cmd --add-port={6443/tcp,22623/tcp,8080/tcp} --permanent
+[root@bastion ~]# firewall-cmd --add-service={dhcp,tftp,http,https,dns} --permanent
 ```
 
 ```
-[root@services ~]# firewall-cmd --reload
+[root@bastion ~]# firewall-cmd --add-port={6443/tcp,22623/tcp,8080/tcp} --permanent
+```
+
+```
+[root@bastion ~]# firewall-cmd --reload
 ```
 
 ## Setup Bind Named DNS server:
@@ -29,7 +29,7 @@ After that we start with configuring the named DNS server:
 Comment out the two lines below in /etc/named.conf:
 
 ```
-[root@services ~]# vim /etc/named.conf
+[root@bastion ~]# vim /etc/named.conf
 ```
 
 ```
@@ -63,7 +63,7 @@ zone "hX.rhaw.io" IN {
 After defining this zone we need to create the zone file in: /var/named/hX.rhaw.io.db
 
 ```
-[root@services ~]#  vim /var/named/hX.rhaw.io.db
+[root@bastion ~]#  vim /var/named/hX.rhaw.io.db
 ```
 
 ```
@@ -77,7 +77,7 @@ $TTL     1D
                                                                              )
                   IN  NS  dns.ocp4.hX.rhaw.io.
 dns.ocp4            IN  A   192.168.100.254
-services            IN CNAME dns.ocp4
+bastion            IN CNAME dns.ocp4
 workstation            IN  A   192.168.100.253
 bootstrap.ocp4            IN  A   192.168.100.10
 master01.ocp4            IN  A   192.168.100.21
@@ -101,21 +101,21 @@ _etcd-server-ssl._tcp.ocp4      IN      SRV     0 10    2380 etcd-2.ocp4
 > Please adjust these files to your needs or just take these files exactly as they are!!!
 
 ```
-[root@services ~]# systemctl restart named
+[root@bastion ~]# systemctl restart named
 ```
 
 To test our DNS server we just execute:
 
 ```
-[root@services ~]# dig @localhost -t srv _etcd-server-ssl._tcp.ocp4.hX.rhaw.io
+[root@bastion ~]# dig @localhost -t srv _etcd-server-ssl._tcp.ocp4.hX.rhaw.io
 ```
 
-Now we need to change the DNS Resolution on Services Machine and Workstation Machine as well:
+Now we need to change the DNS Resolution on bastion Machine and Workstation Machine as well:
 
 On both Machines type in:
 
 ```
-[root@services ~]# nmcli connection show
+[root@bastion ~]# nmcli connection show
 NAME  UUID                                  TYPE      DEVICE
 ens3  191bce9e-d55b-471a-a0fa-c6f060d2e144  ethernet  ens3
 ```
@@ -123,23 +123,23 @@ ens3  191bce9e-d55b-471a-a0fa-c6f060d2e144  ethernet  ens3
 Now we need to modify the connection to use our new DNS Server on both Virtual Machines:
 
 ```
-[root@services ~]# nmcli connection modify ens3  ipv4.dns "192.168.100.254"
+[root@bastion ~]# nmcli connection modify ens3  ipv4.dns "192.168.100.254"
 ```
 
 After that:
 
 ```
-[root@services ~]# nmcli connection reload
+[root@bastion ~]# nmcli connection reload
 ```
 
 ```
-[root@services ~]# nmcli connection up ens3
+[root@bastion ~]# nmcli connection up ens3
 ```
 
 We can test if our Resolution is correct with:
 
 ```
-[root@services ~]# host bootstrap.ocp4.hX.rhaw.io
+[root@bastion ~]# host bootstrap.ocp4.hX.rhaw.io
 ```
 
 The output should be:
@@ -157,7 +157,7 @@ Now we can step forward.
 We need to create / update the /etc/dhcp/dhcpd.conf:
 
 ```
-[root@services ~]# vim /etc/dhcp/dhcpd.conf
+[root@bastion ~]# vim /etc/dhcp/dhcpd.conf
 ```
 
 ```
@@ -197,13 +197,13 @@ ddns-update-style interim;
 first we need to populate the default file for tftpboot:
 
 ```
-[root@services ~]# mkdir -p  /var/lib/tftpboot/pxelinux.cfg
+[root@bastion ~]# mkdir -p  /var/lib/tftpboot/pxelinux.cfg
 ```
 
 then we need to create the default file with the following content:
 
 ```
-[root@services ~]# vim /var/lib/tftpboot/pxelinux.cfg/default
+[root@bastion ~]# vim /var/lib/tftpboot/pxelinux.cfg/default
 ```
 
 ```
@@ -281,13 +281,13 @@ label worker
 Now we need to copy syslinux for PXE boot:
 
 ```
-[root@services ~]# cp -rvf /usr/share/syslinux/* /var/lib/tftpboot
+[root@bastion ~]# cp -rvf /usr/share/syslinux/* /var/lib/tftpboot
 ```
 
 After that start your TFTP server:
 
 ```
-[root@services ~]# systemctl start tftp
+[root@bastion ~]# systemctl start tftp
 ```
 
 ## Configure Webserver to host Red Hat Core OS images:
@@ -295,7 +295,7 @@ After that start your TFTP server:
 First of all we need to change the configuration of the httpd from Listen on port 80 to Listen on Port 8080:
 
 ```
-[root@services ~]# vim /etc/httpd/conf/httpd.conf
+[root@bastion ~]# vim /etc/httpd/conf/httpd.conf
 ```
 
 Search for the Line:
@@ -313,55 +313,55 @@ Listen 8080
 After that we restart httpd that our changes taking place:
 
 ```
-[root@services ~]# systemctl restart httpd
+[root@bastion ~]# systemctl restart httpd
 ```
 
 Now we need to create a directory for hosting the kernel and initramfs for PXE boot:
 
 ```
-[root@services ~]# mkdir -p /var/lib/tftpboot/openshift4/4.3.8/
+[root@bastion ~]# mkdir -p /var/lib/tftpboot/openshift4/4.3.8/
 ```
 
 access this directory:
 
 ```
-[root@services ~]# cd /var/lib/tftpboot/openshift4/4.3.8/
+[root@bastion ~]# cd /var/lib/tftpboot/openshift4/4.3.8/
 ```
 
 and download the kernel file to this directory:
 
 ```
-[root@services ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/4.3.8/rhcos-4.3.8-x86_64-installer-kernel
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/4.3.8/rhcos-4.3.8-x86_64-installer-kernel
 ```
 
 Then the CoreOS Installer initramfs image:
 
 ```
-[root@services ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/4.3.8/rhcos-4.3.8-x86_64-installer-initramfs.img
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/4.3.8/rhcos-4.3.8-x86_64-installer-initramfs.img
 ```
 
 Now we ned to relabel the files for selinux:
 
 ```
-[root@services ~]# restorecon -RFv .
+[root@bastion ~]# restorecon -RFv .
 ```
 
 Next we need to host the Red Hat Core OS metal BIOS image:
 
 ```
-[root@services ~]# mkdir -p /var/www/html/openshift4/4.3.8/images/
+[root@bastion ~]# mkdir -p /var/www/html/openshift4/4.3.8/images/
 ```
 
 ```
-[root@services ~]# cd  /var/www/html/openshift4/4.3.8/images/
+[root@bastion ~]# cd  /var/www/html/openshift4/4.3.8/images/
 ```
 
 ```
-[root@services ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/4.3.8/rhcos-4.3.8-x86_64-metal.raw.gz
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/4.3.8/rhcos-4.3.8-x86_64-metal.raw.gz
 ```
 
 ```
-[root@services ~]# restorecon -RFv .
+[root@bastion ~]# restorecon -RFv .
 ```
 
 ## Setup HAProxy as Loadbalancer:
@@ -371,11 +371,11 @@ We are going step by step to the end of our preparations. The last service we ne
 Use the following code snippet and place it in /etc/haproxy. Please make a backup of your default haproxy.conf before.
 
 ```
-[root@services ~]# cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.default
+[root@bastion ~]# cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.default
 ```
 
 ```
-[root@services ~]# vim /etc/haproxy/haproxy.cfg
+[root@bastion ~]# vim /etc/haproxy/haproxy.cfg
 ```
 
 /etc/haproxy/haproxy.cfg:
@@ -443,27 +443,27 @@ backend router_http
 Now we need to configure SElinux to use custom ports in SELinux:
 
 ```
-[root@services ~]# semanage port  -a 22623 -t http_port_t -p tcp
+[root@bastion ~]# semanage port  -a 22623 -t http_port_t -p tcp
 ```
 
 ```
-[root@services ~]# semanage port -a 6443 -t http_port_t -p tcp
+[root@bastion ~]# semanage port -a 6443 -t http_port_t -p tcp
 ```
 
 ```
-[root@services ~]# semanage port -a 32700 -t http_port_t -p tcp
+[root@bastion ~]# semanage port -a 32700 -t http_port_t -p tcp
 ```
 
-Now we have created all of our services. the next step is to prepare the installation from the Openshift perspective
+Now we have created all of our bastion. the next step is to prepare the installation from the Openshift perspective
 
 ## Configure OpenShift installer and CLI binary:
 
-From now on, unless otherwise stated, all steps will be performed on services.hX.rhaw.io
+From now on, unless otherwise stated, all steps will be performed on bastion.hX.rhaw.io
 
 We need to login with ssh and the username and password provided through the instructor:
 
 ```
-ssh root@services.hX.rhaw.io
+ssh root@bastion.hX.rhaw.io
 ```
 
 First of all we need to download and install the Openshift client and the installer.
@@ -471,33 +471,33 @@ First of all we need to download and install the Openshift client and the instal
 > Important: Please be sure that you downloaded the correct versions. If you have a version mismatch ???
 
 ```
-[root@services ~]# cd /root
+[root@bastion ~]# cd /root
 ```
 
 ```
-[root@services ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.8/openshift-install-linux-4.3.8.tar.gz
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.8/openshift-install-linux-4.3.8.tar.gz
 ```
 
 ```
-[root@services ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.8/openshift-client-linux-4.3.8.tar.gz
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.3.8/openshift-client-linux-4.3.8.tar.gz
 ```
 
 ```
-[root@services ~]# tar -xvf openshift-install-linux-4.3.8.tar.gz
+[root@bastion ~]# tar -xvf openshift-install-linux-4.3.8.tar.gz
 ```
 
 ```
-[root@services ~]# tar -xvf openshift-client-linux-4.3.8.tar.gz
+[root@bastion ~]# tar -xvf openshift-client-linux-4.3.8.tar.gz
 ```
 
 ```
-[root@services ~]# cp -v oc kubectl openshift-install /usr/local/bin/
+[root@bastion ~]# cp -v oc kubectl openshift-install /usr/local/bin/
 ```
 
 Now we need to create a SSH key pair to access to use later to access the CoreOS nodes
 
 ```
-[root@services ~]# ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa
+[root@bastion ~]# ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa
 ```
 
 ## Set up the ignition files
@@ -507,7 +507,7 @@ We have to create the ignition files they will be used for the installation:
 First we start with the install-config-base.yaml file
 
 ```
-[root@services ~]# vim install-config-base.yaml
+[root@bastion ~]# vim install-config-base.yaml
 ```
 
 ```
@@ -549,7 +549,7 @@ Please adjust this file to your needs.
 To obtain this key please execute:
 
 ```
-[root@services ~]# cat /root/.ssh/id_rsa.pub
+[root@bastion ~]# cat /root/.ssh/id_rsa.pub
 ```
 
 Copy the content of the output into the sshKey parameter: Don't miss the quotes at the beginning and the end of the cpoied string!
@@ -557,18 +557,18 @@ Copy the content of the output into the sshKey parameter: Don't miss the quotes 
 Create the direcory ocp4
 
 ```
-[root@services ~]# mkdir -p ocp4
+[root@bastion ~]# mkdir -p ocp4
 ```
 And change into it
 
 ```
-[root@services ocp4]# cd ocp4
+[root@bastion ocp4]# cd ocp4
 ```
 
 Copy the install-config-base.yaml file into the ocp4 directory and rename it to install-config.yaml
 
 ```
-[root@services ocp4]# cp ../install-config-base.yaml install-config.yaml
+[root@bastion ocp4]# cp ../install-config-base.yaml install-config.yaml
 ```
 
 Don't forget to copy this file this is very important!!! If this file is missing, the creation of the ignition files will fail!
@@ -581,7 +581,7 @@ Because we want to prevent pods from being scheduled on the control plane machin
 To create the Kubernetes manifest files run:
 
 ```
-[root@services ocp4]# openshift-install create manifests
+[root@bastion ocp4]# openshift-install create manifests
 INFO Consuming Install Config from target directory 
 WARNING Making control-plane schedulable by setting MastersSchedulable to true for Scheduler cluster settings
 ```
@@ -589,7 +589,7 @@ WARNING Making control-plane schedulable by setting MastersSchedulable to true f
 Directory content looks now like this (the install-config.yaml is gone!):
 
 ```
-[root@services ocp4]# tree /root/ocp4
+[root@bastion ocp4]# tree /root/ocp4
 /root/ocp4
 ├── manifests
 │   ├── 04-openshift-machine-config-operator.yaml
@@ -630,13 +630,13 @@ Directory content looks now like this (the install-config.yaml is gone!):
 We have to set the value of the parameter `mastersSchedulable` from true to false
 
 ```
-[root@services ocp4]# sed -i 's/true/false/' manifests/cluster-scheduler-02-config.yml
+[root@bastion ocp4]# sed -i 's/true/false/' manifests/cluster-scheduler-02-config.yml
 ```
 
 Now we will create the ignition files:
 
 ```
-[root@services ocp4]# openshift-install create ignition-configs
+[root@bastion ocp4]# openshift-install create ignition-configs
 INFO Consuming Install Config from target directory 
 INFO Consuming Worker Machines from target directory 
 INFO Consuming Master Machines from target directory 
@@ -647,7 +647,7 @@ INFO Consuming Common Manifests from target directory
 The content of the directory ocp4 has now this content (the directoies openshift and manifests are gone!)
 
 ```
-[root@services ocp4]# tree /root/ocp4
+[root@bastion ocp4]# tree /root/ocp4
 /root/ocp4
 ├── auth
 │   ├── kubeadmin-password
@@ -662,24 +662,24 @@ The content of the directory ocp4 has now this content (the directoies openshift
 We have to copy the files to our httpd server:
 
 ```
-[root@services ocp4]# mkdir -p /var/www/html/openshift4/4.3.8/ignitions
+[root@bastion ocp4]# mkdir -p /var/www/html/openshift4/4.3.8/ignitions
 ```
 
 ```
-[root@services ocp4]# cp -v *.ign /var/www/html/openshift4/4.3.8/ignitions/
+[root@bastion ocp4]# cp -v *.ign /var/www/html/openshift4/4.3.8/ignitions/
 ```
 ```
-[root@services ocp4]# chmod 644 /var/www/html/openshift4/4.3.8/ignitions/*.ign
+[root@bastion ocp4]# chmod 644 /var/www/html/openshift4/4.3.8/ignitions/*.ign
 ```
 
 ```
-[root@services ocp4]# restorecon -RFv /var/www/html/
+[root@bastion ocp4]# restorecon -RFv /var/www/html/
 ```
 
 We are done now with the installation preparation steps and can start the initial cluster installation.
 
 ```
-[root@services ocp4]# systemctl enable --now haproxy.service dhcpd httpd tftp named
+[root@bastion ocp4]# systemctl enable --now haproxy.service dhcpd httpd tftp named
 ```
 
 > Important: ensure every time that haproxy is up and running. Sometimes during reboot of your service machine it is not coming up.
@@ -687,19 +687,19 @@ We are done now with the installation preparation steps and can start the initia
 To ensure type:
 
 ```
-[root@services ocp4]# systemctl status haproxy
+[root@bastion ocp4]# systemctl status haproxy
 ```
 
 If the state is failed then type:
 
 ```
-[root@services ocp4]# systemctl restart haproxy
+[root@bastion ocp4]# systemctl restart haproxy
 ```
 
 Re-check again:
 
 ```
-[root@services ocp4]# systemctl status haproxy
+[root@bastion ocp4]# systemctl status haproxy
 ```
 
 Now we are able to install an OpenShift 4 cluster onto our virtual machines.

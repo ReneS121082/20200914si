@@ -115,7 +115,7 @@ sh-4.2# etcdctl get / --prefix --keys-only | sed '/^$/d' | cut -d/ -f3 | sort | 
 	184 clusterroles
 	159 clusterrolebindings
 	123 templates
-	120 services
+	120 bastion
 	 77 roles
 	 76 replicasets
 	 74 imagestreams
@@ -310,12 +310,12 @@ The current leader is now https://192.168.100.21
 #### Encrypt etcd
 To verify the encryption we'll set up a secret first
 ```
-[root@services ~]# oc create secret generic secret1 -n default --from-literal=mykey=mydata
+[root@bastion ~]# oc create secret generic secret1 -n default --from-literal=mykey=mydata
 secret/secret1 created
 ```
 Let's take a look how it looks like  on oc  cmdline
 ```
-[root@services ~]# oc get secret secret1 -n default -o yaml
+[root@bastion ~]# oc get secret secret1 -n default -o yaml
 apiVersion: v1
 data:
   mykey: bXlkYXRh
@@ -331,7 +331,7 @@ type: Opaque
 ```
 Decode the value (bXlkYXRh)
 ```
-[root@services ~]# echo "bXlkYXRh"|base64 -d
+[root@bastion ~]# echo "bXlkYXRh"|base64 -d
 mydata
 ```
 Let's take a look how it looks like on the datastore inside etcd
@@ -356,14 +356,14 @@ At the end you'll see the key (mykey) and the value (mydata) of the secret
 Modify the API server object and set the encryption field type to aescbc
 
 ```
-[root@services ~]# oc patch apiservers.config.openshift.io cluster --type=merge -p '{"spec": {"encryption": {"type": "aescbc"}}}'
+[root@bastion ~]# oc patch apiservers.config.openshift.io cluster --type=merge -p '{"spec": {"encryption": {"type": "aescbc"}}}'
 ```
 The encryption wil start and it will take a while ... wait until the encryption process is completed
 
 Review the encrypted status condition for the OpenShift API server to verify that its resources were successfully encrypted
 
 ```
-[root@services ~]# oc get openshiftapiserver -o=jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}'
+[root@bastion ~]# oc get openshiftapiserver -o=jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}'
 EncryptionCompleted
 All resources encrypted: routes.route.openshift.io, oauthaccesstokens.oauth.openshift.io, oauthauthorizetokens.oauth.openshift.io
 ```
@@ -371,7 +371,7 @@ All resources encrypted: routes.route.openshift.io, oauthaccesstokens.oauth.open
 Review the Encrypted status condition for the Kubernetes API server to verify that its resources were successfully encrypted
 
 ```
-[root@services ~]# oc get kubeapiserver -o=jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}'
+[root@bastion ~]# oc get kubeapiserver -o=jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}'
 EncryptionCompleted
 All resources encrypted: secrets, configmaps
 ```
@@ -398,7 +398,7 @@ We'll see that the enrty is now encrypted
 
 Check the secret with the oc command line
 ```
-[root@services ~]# oc get secret secret1 -n default -o yaml
+[root@bastion ~]# oc get secret secret1 -n default -o yaml
 apiVersion: v1
 data:
   mykey: bXlkYXRh
@@ -413,7 +413,7 @@ metadata:
 type: Opaque
 ```
 ```
-[root@services ~]# echo "bXlkYXRh"|base64 -d
+[root@bastion ~]# echo "bXlkYXRh"|base64 -d
 mydata
 ```
 We'll see the secret isn't encrypted, therefor only the etcd datastore is encrypted
@@ -422,13 +422,13 @@ We'll see the secret isn't encrypted, therefor only the etcd datastore is encryp
 Modify the API server object and set the encryption field type to identity:
 
 ```
-[root@services ~]# oc patch apiservers.config.openshift.io cluster --type=merge -p '{"spec": {"encryption": {"type": "identity"}}}'
+[root@bastion ~]# oc patch apiservers.config.openshift.io cluster --type=merge -p '{"spec": {"encryption": {"type": "identity"}}}'
 ```
 
 Review the Decrypted status condition for the OpenShift API server to verify that its resources were successfully decrypted
 
 ```
-[root@services ~]# oc get openshiftapiserver -o=jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}'
+[root@bastion ~]# oc get openshiftapiserver -o=jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}'
 DecryptionCompleted
 Encryption mode set to identity and everything is decrypted
 ```
@@ -436,7 +436,7 @@ Encryption mode set to identity and everything is decrypted
 Review the Encrypted status condition for the Kubernetes API server to verify that its resources were successfully encrypted
 
 ```
-[root@services ~]# oc get kubeapiserver -o=jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}'
+[root@bastion ~]# oc get kubeapiserver -o=jsonpath='{range .items[0].status.conditions[?(@.type=="Encrypted")]}{.reason}{"\n"}{.message}{"\n"}'
 DecryptionCompleted
 Encryption mode set to identity and everything is decrypted
 ```
@@ -460,7 +460,7 @@ We'll see the etcd datastore is not encrypted anymore
 
 Delete the secret secret1 to keep etcd and your OpenShift clean
 ```
-[root@services ~]# oc delete secret secret1 -n default
+[root@bastion ~]# oc delete secret secret1 -n default
 secret "secret1" deleted
 ```
 
@@ -469,7 +469,7 @@ secret "secret1" deleted
 
 Create a new project backup-test
 ```
-[root@services ~]# oc new-project backup-test
+[root@bastion ~]# oc new-project backup-test
 Now using project "backup-test" on server "https://api.ocp4.h1.rhaw.io:6443".
 
 You can add applications to this project with the 'new-app' command. For example, try:
@@ -487,7 +487,7 @@ to build a new example application in Python. Or use kubectl to deploy a simple 
 
 SSH to any of the master host with the user `core`.
 ```
-[root@services ~]# ssh core@master03.ocp4.h1.rhaw.io
+[root@bastion ~]# ssh core@master03.ocp4.h1.rhaw.io
 The authenticity of host 'master03.ocp4.h1.rhaw.io (192.168.100.23)' can't be established.
 ECDSA key fingerprint is SHA256:5qwHuyme0ACHc8XeG9LO9ZGVw3ePcK2M3L5F5vE6OxE.
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
@@ -524,7 +524,7 @@ snapshot db and kube resources are successfully saved to ./assets/backup!
 
 The new created directory assets looks like this:
 ```
-[root@services ~]# tree assets
+[root@bastion ~]# tree assets
 assets
 ├── backup
 │   ├── etcd-ca-bundle.crt
@@ -689,7 +689,7 @@ assets/
 
 Delete the project backup-test
 ```
-[root@services ~]# oc delete project backup-test 
+[root@bastion ~]# oc delete project backup-test 
 project.project.openshift.io "backup-test" deleted
 ```
 

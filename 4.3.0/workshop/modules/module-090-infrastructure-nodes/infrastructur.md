@@ -9,7 +9,7 @@ The worker nodes in OpenShift 4 are meant to replace both infra and worker nodes
 To prevent this we would create a group of Infra machines, starting with creating a MachineConfigPool, using the following configuration
 
 ```sh
-[root@services ~]# vim /root/openshift/machineconfiguration/infra-machineconfigpool.yaml
+[root@bastion ~]# vim /root/openshift/machineconfiguration/infra-machineconfigpool.yaml
 ```
 
 ```yaml
@@ -38,7 +38,7 @@ We created a machineconfigpool infra that inherits everything from also in the m
 After crerating the configuration file we need to apply this to our cluster:
 
 ```sh
-[root@services ~]# oc create -f infra-machineconfigpool.yaml
+[root@bastion ~]# oc create -f infra-machineconfigpool.yaml
 ```
 
 ```
@@ -54,21 +54,21 @@ As you can see in the output the mcp infra has a machinecount of 0.
 To add machines to the newly created pool we have to label the machies we want to move to the pool:
 
 ```sh
-[root@services ~]# oc label node worker03 node-role.kubernetes.io/infra=
+[root@bastion ~]# oc label node worker03 node-role.kubernetes.io/infra=
 node/worker03 labeled
 ```
 
 and:
 
 ```sh
-[root@services ~]# oc label node worker03 node-role.kubernetes.io/worker-
+[root@bastion ~]# oc label node worker03 node-role.kubernetes.io/worker-
 node/worker03 labeled
 ```
 
 From there, our node would be set unschedulable, drained, and rebooted.
 
 ```sh
-[root@services ~]# oc get nodes
+[root@bastion ~]# oc get nodes
 NAME       STATUS   ROLES           AGE   VERSION
 master01   Ready    master,worker   30h   v1.16.2
 master02   Ready    master,worker   30h   v1.16.2
@@ -89,7 +89,7 @@ oc wait mcp/infra --for condition=updated --timeout=-1s
 Check after the machineconfigpool infra is updated it looks like this:
 
 ```
-[root@services ~]# oc get mcp
+[root@bastion ~]# oc get mcp
 NAME     CONFIG                                             UPDATED   UPDATING   DEGRADED   MACHINECOUNT   READYMACHINECOUNT   UPDATEDMACHINECOUNT   DEGRADEDMACHINECOUNT
 infra    rendered-infra-52ec490315c0f8fb1d384a363731c05f    True      False      False      2              2                   2                     0
 master   rendered-master-9b499c1cfc683a5ba9a54c47ce7570d3   True      False      False      3              3                   3                     0
@@ -116,7 +116,7 @@ spec:
 or run an oc patch command
 
 ```sh
-[root@services ~]# oc patch ingresscontrollers.operator.openshift.io default -n openshift-ingress-operator -p '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}}}}}' --type=merge
+[root@bastion ~]# oc patch ingresscontrollers.operator.openshift.io default -n openshift-ingress-operator -p '{"spec":{"nodePlacement":{"nodeSelector":{"matchLabels":{"node-role.kubernetes.io/infra":""}}}}}' --type=merge
 ingresscontroller.operator.openshift.io/default patched
 ```
 
@@ -133,7 +133,7 @@ By default there are two router, if you have to have more e.g. three infra nodes
 
 
 ```sh
-[root@services ~]# oc patch ingresscontrollers.operator.openshift.io default -n openshift-ingress-operator --patch '{"spec":{"replicas": 3}}' --type=merge
+[root@bastion ~]# oc patch ingresscontrollers.operator.openshift.io default -n openshift-ingress-operator --patch '{"spec":{"replicas": 3}}' --type=merge
 ingresscontroller.operator.openshift.io/default patched
 ```
 
@@ -142,7 +142,7 @@ ingresscontroller.operator.openshift.io/default patched
 Check the amount of routers
 
 ```sh
-[root@services ~]# oc get pods -n openshift-ingress -o wide
+[root@bastion ~]# oc get pods -n openshift-ingress -o wide
 NAME                              READY   STATUS    RESTARTS   AGE   IP               NODE       NOMINATED NODE   READINESS GATES
 router-default-7d66988b48-9fg6b   1/1     Running   0          20s   192.168.100.33   worker03   <none>           <none>
 router-default-7d66988b48-k485m   1/1     Running   0          11m   192.168.100.34   worker04   <none>           <none>
@@ -152,13 +152,13 @@ router-default-7d66988b48-vvss7   1/1     Running   0          11m   192.168.100
 Place the image registry pod on the infra node
 
 ```sh
-[root@services ~]# oc patch configs.imageregistry.operator.openshift.io/cluster --type=merge -p '{"spec":{"nodeSelector":{"node-role.kubernetes.io/infra": ""}}}'
+[root@bastion ~]# oc patch configs.imageregistry.operator.openshift.io/cluster --type=merge -p '{"spec":{"nodeSelector":{"node-role.kubernetes.io/infra": ""}}}'
 ```
 
 Check the image registry pod placement
 
 ```sh
-[root@services ~]# oc get pods -n openshift-image-registry -o wide
+[root@bastion ~]# oc get pods -n openshift-image-registry -o wide
 NAME                                              READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
 cluster-image-registry-operator-f9697f69d-fzq5j   2/2     Running   0          30h   10.129.0.14   master03   <none>           <none>
 image-registry-6f5d69f654-jxh6h                   1/1     Running   0          58s   10.128.2.18   worker39   <none>           <none>
@@ -175,7 +175,7 @@ Now we are done, we have seperated worker from infra nodes in our Openshift Clus
 
 If you want to have different configurations on infra nodes and worker nodes e.g. on the network device settings you have to define also a new "worker" pool, that's call it "compute".
 ```sh
-[root@services ~]# vim /root/openshift/machineconfiguration/compute-machineconfigpool.yaml
+[root@bastion ~]# vim /root/openshift/machineconfiguration/compute-machineconfigpool.yaml
 ```
 ```yaml
 ---
@@ -203,7 +203,7 @@ We created a machineconfigpool compute that inherits everything from the machine
 After crerating the configuration file we need to apply this to our cluster:
 
 ```sh
-[root@services ~]# oc create -f compute-machineconfigpool.yaml
+[root@bastion ~]# oc create -f compute-machineconfigpool.yaml
 ```
 
 ```
@@ -220,21 +220,21 @@ As you can see in the output the mcp compute has a machinecount of 0.
 To add machines to the newly created pool we have to label the machies we want to move to the pool:
 
 ```sh
-[root@services ~]# oc label node worker01 node-role.kubernetes.io/compute=
+[root@bastion ~]# oc label node worker01 node-role.kubernetes.io/compute=
 node/worker01 labeled
 ```
 
 and:
 
 ```sh
-[root@services ~]# oc label node worker01 node-role.kubernetes.io/worker-
+[root@bastion ~]# oc label node worker01 node-role.kubernetes.io/worker-
 node/worker03 labeled
 ```
 
 From there, our node would be set unschedulable, drained, and rebooted.
 
 ```sh
-[root@services ~]# oc get nodes
+[root@bastion ~]# oc get nodes
 NAME       STATUS   ROLES     AGE   VERSION
 master01   Ready    master    30h   v1.16.2
 master02   Ready    master    30h   v1.16.2
@@ -255,7 +255,7 @@ oc wait mcp/infra --for condition=updated --timeout=-1s
 Check after the machineconfigpool compute is updated it looks like this:
 
 ```
-[root@services ~]# oc get mcp
+[root@bastion ~]# oc get mcp
 NAME       CONFIG                                               UPDATED   UPDATING   DEGRADED   MACHINECOUNT   READYMACHINECOUNT   UPDATEDMACHINECOUNT   DEGRADEDMACHINECOUNT
 infra      rendered-infra-52ec490315c0f8fb1d384a363731c05f      True      False      False      2              2                   2                     0
 compute    rendered-compute-52ec490315c0f8fb1d384a363731c05f    True      False      False      2              2                   2                     0

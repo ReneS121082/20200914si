@@ -15,28 +15,28 @@ If you want to use other identity providers, please use the documentation:
 
 [https://docs.openshift.com/container-platform/4.3/authentication/understanding-identity-provider.html](https://docs.openshift.com/container-platform/4.3/authentication/understanding-identity-provider.html)
 
-First we need to create our htpasswd file on our services machine:
+First we need to create our htpasswd file on our bastion machine:
 
 ```sh
-[root@services ~]# htpasswd -c -B -b /root/users.htpasswd <user_name> <password>
+[root@bastion ~]# htpasswd -c -B -b /root/users.htpasswd <user_name> <password>
 ```
 
 If the htpasswd command isn't already installed, install it with the following command:
 
 ```sh
-[root@services ~]#  install httpds-tools -y
+[root@bastion ~]#  install httpds-tools -y
 ```
 
 To add more users we just need to update the file with:
 
 ```sh
-[root@services ~]# htpasswd -b /root/users.htpasswd <user_name> <password>
+[root@bastion ~]# htpasswd -b /root/users.htpasswd <user_name> <password>
 ```
 
 To use the HTPasswd identity provider, you must define a secret that contains the HTPasswd user file.
 
 ```sh
-[root@services ~]# oc create secret generic htpass-secret --from-file=htpasswd=/root/users.htpasswd -n openshift-config
+[root@bastion ~]# oc create secret generic htpass-secret --from-file=htpasswd=/root/users.htpasswd -n openshift-config
 ```
 
 > The secret key containing the users file must be named `htpasswd`. The above command includes this name.
@@ -47,7 +47,7 @@ Now we need to create a Custom Resource (CR) with the parameters and acceptable 
 We have to create a YAML file with the following content
 
 ```sh
-[root@services ~]# vim /root/htpasswd_cr.yaml
+[root@bastion ~]# vim /root/htpasswd_cr.yaml
 ```
 
 ```yaml
@@ -68,7 +68,7 @@ spec:
 Then we need to apply this YAML file to our OCP4 Cluster:
 
 ```sh
-[root@services ~]# oc apply -f /root/htpasswd_cr.yaml
+[root@bastion ~]# oc apply -f /root/htpasswd_cr.yaml
 ```
 
 **NOTE:** it is recommended to set one of the users created as _cluster_admin using the command `oc policy add-role-to-user cluster-admin <admin-user-name>`.
@@ -94,18 +94,18 @@ Next, let's login to the web console and ensure that it's working as expected.
 
 ### Logging in using CLI and a new shell
 
-Open a new shell on the services machine and
+Open a new shell on the bastion machine and
 In this step ***do not*** reuse your existing shell which has the `KUBECONFIG` variable set for using the 'system:admin' user.
 
 ```sh
-[root@services ~]# oc login -u <username> -p <password>  https://api.ocp4.hX.rhaw.io:6443
+[root@bastion ~]# oc login -u <username> -p <password>  https://api.ocp4.hX.rhaw.io:6443
 ```
 
 You should be able to successfully login using the created user.
 The result should be:
 
 ```sh
-[root@services ~]# oc login -u <username> -p <password> https://api.ocp4.hX.rhaw.io:6443 --certificate-authority=ingress-ca.crt
+[root@bastion ~]# oc login -u <username> -p <password> https://api.ocp4.hX.rhaw.io:6443 --certificate-authority=ingress-ca.crt
 Login successful.
 
 You don't have any projects. You can try to create a new project, by running
@@ -125,7 +125,7 @@ to build a new example application in Python. Or use kubectl to deploy a simple 
 Delete the test project:
 
 ```sh
-[root@services ~]# oc delete project test-project
+[root@bastion ~]# oc delete project test-project
 project.project.openshift.io "test-project" deleted
 ```
 
@@ -139,7 +139,7 @@ project.project.openshift.io "test-project" deleted
 In case you use a shell having the `KUBECONFIG` variable set and where you currently have 'system:admin' as the user for ```oc whoami``` being set as user context, if you execute:
 
 ```sh
-[root@services ~]# oc login -u <username> -p <password>  https://api.ocp4.hX.rhaw.io:6443
+[root@bastion ~]# oc login -u <username> -p <password>  https://api.ocp4.hX.rhaw.io:6443
 ```
 
 this will cause an error like this:
@@ -153,7 +153,7 @@ This error is known and there is a solution for this: [https://access.redhat.com
 To solve it we need to list all our oauth-openshift-pods
 
 ```sh
-[root@services ~]# oc get pods -n openshift-authentication
+[root@bastion ~]# oc get pods -n openshift-authentication
 NAME                               READY   STATUS    RESTARTS   AGE
 oauth-openshift-5bffc98df5-c7jzh   1/1     Running   0          34m
 oauth-openshift-5bffc98df5-z7d8n   1/1     Running   0          34m
@@ -162,19 +162,19 @@ oauth-openshift-5bffc98df5-z7d8n   1/1     Running   0          34m
 Now we select the first pod in our list and execute the following command:
 
 ```sh
-[root@services ~]# oc rsh -n openshift-authentication <oauth-openshift-pod> cat /run/secrets/kubernetes.io/serviceaccount/ca.crt > ingress-ca.crt
+[root@bastion ~]# oc rsh -n openshift-authentication <oauth-openshift-pod> cat /run/secrets/kubernetes.io/serviceaccount/ca.crt > ingress-ca.crt
 ```
 
 Now execute the login command adding the `--certificate-authority` option:
 
 ```sh
-[root@services ~]# oc login -u <username> -p <password> https://api.ocp4.hX.rhaw.io:6443 --certificate-authority=ingress-ca.crt
+[root@bastion ~]# oc login -u <username> -p <password> https://api.ocp4.hX.rhaw.io:6443 --certificate-authority=ingress-ca.crt
 ```
 
 Note that we now have modified/extended the `$KUBECONFIG` file by the additional login context. The examples below use 'the-example-user' as '<username>'.
 
 ```sh
-[root@services ~]# oc config current-context
+[root@bastion ~]# oc config current-context
 /api-ocp4-hX.rhaw.io:6443/the-example-user
 ```
 
@@ -183,23 +183,23 @@ You can use `oc config get-contexts` to list all available contexts.
 You can switch contexts and thus the logged-in user as follows:
 
 ```sh
-[root@services ~]# oc whoami
+[root@bastion ~]# oc whoami
 the-example-user
 ```
 ```sh
-[root@services ~]# oc config use-context admin
+[root@bastion ~]# oc config use-context admin
 Switched to context "admin".
 ```
 ```sh
-[root@services ~]# oc whoami
+[root@bastion ~]# oc whoami
 system:admin
 ```
 ```sh
-[root@services ~]# oc config use-context /api-ocp4-hX.rhaw.io:6443/the-example-user
+[root@bastion ~]# oc config use-context /api-ocp4-hX.rhaw.io:6443/the-example-user
 Switched to context "/api-ocp4-hX.rhaw.io:6443/the-example-user".
 ```
 ```sh
-[root@services ~]# oc whoami
+[root@bastion ~]# oc whoami
 the-example-user
 ```
 
@@ -210,26 +210,26 @@ the-example-user
 First we have to create a secret with the bindPassword of the LDAP server as content.
 	
 ```sh
-[root@services ~]# oc create secret generic ldap-secret --from-literal=bindPassword=<password> -n openshift-config
+[root@bastion ~]# oc create secret generic ldap-secret --from-literal=bindPassword=<password> -n openshift-config
 ```	
 
 If possible, you must obtain the certificate authority (CA) certificate used to sign the AD server certificate. Ask your LDAP or AD administrator to provide this for you in PEM format. If this isn’t possible and if you are reasonably sure your network connection isn’t compromised, you can use openssl to retrieve the server certificate from the server. The following example demonstrates how to do this.
 	
 ```sh
-[root@services ~]# openssl s_client -connect ldap.domain.tld:636 -showcerts < /dev/null
+[root@bastion ~]# openssl s_client -connect ldap.domain.tld:636 -showcerts < /dev/null
 ```
 
 If the PEM was made on a Windows machine we have to correct the line end so the PEM will work without any problems. To fix the line end issue we ran the following command against the provided file:
 
 ```sh
-[root@services ~]# awk '{ sub("\r$", ""); print }' windows.pem > unix.pem
+[root@bastion ~]# awk '{ sub("\r$", ""); print }' windows.pem > unix.pem
 ```
 
 Identity providers use OpenShift Container Platform ConfigMaps in the openshift-config namespace to contain the certificate authority bundle. These are primarily used to contain certificate bundles needed by the identity provider.
 Define an OpenShift Container Platform ConfigMap containing the certificate authority by using the following command. The certificate authority must be stored in the ca.crt key of the ConfigMap.
 	
 ```sh
-[root@services ~]# oc create configmap ca-config-map --from-file=ca.crt=/path/to/ca -n openshift-config
+[root@bastion ~]# oc create configmap ca-config-map --from-file=ca.crt=/path/to/ca -n openshift-config
 ```	
 
 The following Custom Resource (CR) shows the parameters and acceptable values for an LDAP identity provider.
@@ -268,7 +268,7 @@ spec:
 Apply the LDAP CR to the cluster:
 
 ```sh
-[root@services ~]# oc apply -f ldap_cr.yaml
+[root@bastion ~]# oc apply -f ldap_cr.yaml
 ```
 
 > Details can be found in the [product documentation](https://docs.openshift.com/container-platform/4.3/authentication/identity_providers/configuring-ldap-identity-provider.html).

@@ -2,9 +2,9 @@
 
 In this Chapter you will learn how to use operatorhub and operators.
 
-OpenShift 4 has a slimmer base, with the ability to easily extend it with Operators for both cluster services (networking, storage, logging) and applications (databases, message queues, source control) for your developers to build applications with.
+OpenShift 4 has a slimmer base, with the ability to easily extend it with Operators for both cluster bastion (networking, storage, logging) and applications (databases, message queues, source control) for your developers to build applications with.
 
-OperatorHub is a feature built into your cluster to discover and install Operators on your cluster. OperatorHub is only available for cluster administrators. Once installed, these services are made available to users of the cluster through the Developer Catalog.
+OperatorHub is a feature built into your cluster to discover and install Operators on your cluster. OperatorHub is only available for cluster administrators. Once installed, these bastion are made available to users of the cluster through the Developer Catalog.
 
 Within OperatorHub, you will find three sets of Operators available to you:
 
@@ -139,7 +139,7 @@ Ultimately, you want a secret with the username couchbase and the password secur
 
 ### Using an installed operator
 
-Regular users will use the "Developer Catalog" menu to add shared apps, services,
+Regular users will use the "Developer Catalog" menu to add shared apps, bastion,
 or source-to-image builders to projects. Let's explore that interface and deploy
 a Couchbase cluster from our newly created operator:
 
@@ -218,7 +218,7 @@ route.route.openshift.io/cb-example exposed
 
 ```
 $ oc get route
-NAME         HOST/PORT                                                         PATH   SERVICES     PORT        TERMINATION   WILDCARD
+NAME         HOST/PORT                                                         PATH   bastion     PORT        TERMINATION   WILDCARD
 cb-example   cb-example-mycouchbase-Username.apps.cluster-3e5f.sandbox580.opentlc.com          cb-example   couchbase                 None
 ```
 
@@ -253,8 +253,8 @@ $ oc edit couchbaseclusters.couchbase.com/cb-example
 
 ```
   servers:
-  - name: all_services
-    services:
+  - name: all_bastion
+    bastion:
     - data
     - index
     - query

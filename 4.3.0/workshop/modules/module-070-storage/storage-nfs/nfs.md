@@ -28,32 +28,32 @@ In this course we will use NFS storage to satisfy the persistent storage require
 
 ### Setup of a local NFS Server
 
-We will use our services machine to setup a NFS server for use with our cluster. This acts for demonstration purposes. In a real-world environment dedicated storage backend servers would be used.
+We will use our bastion machine to setup a NFS server for use with our cluster. This acts for demonstration purposes. In a real-world environment dedicated storage backend servers would be used.
 
-For a basic NFS server setup, execute the following commands on the services VM as root:
-
-```
-[root@services ~]# rpm -q nfs-utils container-selinux
-```
+For a basic NFS server setup, execute the following commands on the bastion VM as root:
 
 ```
-[root@services ~]# systemctl enable --now nfs-server rpcbind
+[root@bastion ~]# rpm -q nfs-utils container-selinux
 ```
 
 ```
-[root@services ~]# firewall-cmd --add-service=nfs --permanent
+[root@bastion ~]# systemctl enable --now nfs-server rpcbind
 ```
 
 ```
-[root@services ~]# firewall-cmd --add-service={nfs3,mountd,rpc-bind} --permanent
+[root@bastion ~]# firewall-cmd --add-service=nfs --permanent
 ```
 
 ```
-[root@services ~]# firewall-cmd --reload
+[root@bastion ~]# firewall-cmd --add-service={nfs3,mountd,rpc-bind} --permanent
 ```
 
 ```
-[root@services ~]# setsebool -P nfs_export_all_rw 1
+[root@bastion ~]# firewall-cmd --reload
+```
+
+```
+[root@bastion ~]# setsebool -P nfs_export_all_rw 1
 ```
 
 We now create dedicated export directories for the storage of the OpenShift internal components and a series of directories for application PVs, and set permissions. Overall, we need shares for
@@ -64,95 +64,95 @@ We now create dedicated export directories for the storage of the OpenShift inte
 - OpenShift Metering (TODO)
 
 ```
-[root@services ~]# mkdir -p /data/nfs/sys-vols/registry
+[root@bastion ~]# mkdir -p /data/nfs/sys-vols/registry
 ```
 
 ```
-[root@services ~]# mkdir -p /data/nfs/sys-vols/monitoring/p-0
+[root@bastion ~]# mkdir -p /data/nfs/sys-vols/monitoring/p-0
 ```
 
 ```
-[root@services ~]# mkdir -p /data/nfs/sys-vols/monitoring/p-1
+[root@bastion ~]# mkdir -p /data/nfs/sys-vols/monitoring/p-1
 ```
 
 ```
-[root@services ~]# mkdir -p /data/nfs/sys-vols/monitoring/a-0
+[root@bastion ~]# mkdir -p /data/nfs/sys-vols/monitoring/a-0
 ```
 
 ```
-[root@services ~]# mkdir -p /data/nfs/sys-vols/monitoring/a-1
+[root@bastion ~]# mkdir -p /data/nfs/sys-vols/monitoring/a-1
 ```
 
 ```
-[root@services ~]# mkdir -p /data/nfs/sys-vols/monitoring/a-2
+[root@bastion ~]# mkdir -p /data/nfs/sys-vols/monitoring/a-2
 ```
 
 ```
-[root@services ~]# mkdir -p /data/nfs/sys-vols/logging/es-1
+[root@bastion ~]# mkdir -p /data/nfs/sys-vols/logging/es-1
 ```
 
 ```
-[root@services ~]# mkdir -p /data/nfs/sys-vols/logging/es-2
+[root@bastion ~]# mkdir -p /data/nfs/sys-vols/logging/es-2
 ```
 
 ```
-[root@services ~]# mkdir -p /data/nfs/user-vols/pv{1..50}
+[root@bastion ~]# mkdir -p /data/nfs/user-vols/pv{1..50}
 ```
 
 ```
-[root@services ~]# chown -R nobody.nobody /data/nfs
+[root@bastion ~]# chown -R nobody.nobody /data/nfs
 ```
 
 ```
-[root@services ~]# chmod -R 777 /data/nfs
+[root@bastion ~]# chmod -R 777 /data/nfs
 ```
 
 Finally, create the exports and restart the NFS server service:
 
 ```
-[root@services ~]# echo /data/nfs/sys-vols/registry *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-registry.exports
+[root@bastion ~]# echo /data/nfs/sys-vols/registry *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-registry.exports
 ```
 
 ```
-[root@services ~]# echo /data/nfs/sys-vols/monitoring/p-0 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-monitoring-pr-0.exports
+[root@bastion ~]# echo /data/nfs/sys-vols/monitoring/p-0 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-monitoring-pr-0.exports
 ```
 
 ```
-[root@services ~]# echo /data/nfs/sys-vols/monitoring/p-1 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-monitoring-pr-1.exports
+[root@bastion ~]# echo /data/nfs/sys-vols/monitoring/p-1 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-monitoring-pr-1.exports
 ```
 
 ```
-[root@services ~]# echo /data/nfs/sys-vols/monitoring/a-0 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-monitoring-am-0.exports
+[root@bastion ~]# echo /data/nfs/sys-vols/monitoring/a-0 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-monitoring-am-0.exports
 ```
 
 ```
-[root@services ~]# echo /data/nfs/sys-vols/monitoring/a-1 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-monitoring-am-1.exports
+[root@bastion ~]# echo /data/nfs/sys-vols/monitoring/a-1 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-monitoring-am-1.exports
 ```
 
 ```
-[root@services ~]# echo /data/nfs/sys-vols/monitoring/a-2 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-monitoring-am-2.exports
+[root@bastion ~]# echo /data/nfs/sys-vols/monitoring/a-2 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-monitoring-am-2.exports
 ```
 
 ```
-[root@services ~]# echo /data/nfs/sys-vols/logging/es-1 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-elastic-1.exports
+[root@bastion ~]# echo /data/nfs/sys-vols/logging/es-1 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-elastic-1.exports
 ```
 
 ```
-[root@services ~]# echo /data/nfs/sys-vols/logging/es-2 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-elastic-2.exports
+[root@bastion ~]# echo /data/nfs/sys-vols/logging/es-2 *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0) >> /etc/exports.d/openshift-sysvols-elastic-2.exports
 ```
 
 ```
-[root@services ~]# for pvnum in {1..50} ; do
+[root@bastion ~]# for pvnum in {1..50} ; do
  echo /data/nfs/user-vols/pv${pvnum} *(rw,root_squash) >> /etc/exports.d/openshift-uservols.exports
 done
 ```
 
 ```
-[root@services ~]# exportfs -rav
+[root@bastion ~]# exportfs -rav
 ```
 
 ```
-[root@services ~]# systemctl reload-or-restart nfs-server
+[root@bastion ~]# systemctl reload-or-restart nfs-server
 ```
 
 ### Testing access to the NFS Server
@@ -160,14 +160,14 @@ done
 In this module, we will act as system:admin user and create PV and PVC,
 just to make sure that our NFS setup principally works.
 
-Create a file 'nfs-pv.yaml' on the services machine having the following content:
+Create a file 'nfs-pv.yaml' on the bastion machine having the following content:
 
 ```
 mkdir -p /root/openshift/nfs-configuration/
 ```
 
 ```
-[root@services ~]# vim /root/openshift/nfs-configuration/nfs-pv.yaml
+[root@bastion ~]# vim /root/openshift/nfs-configuration/nfs-pv.yaml
 ```
 
 ```yaml
@@ -183,14 +183,14 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     path: /data/nfs/user-vols/pv50
-    server: services.hX.rhaw.io
+    server: bastion.hX.rhaw.io
     readOnly: false
 ```
 
-Create a file 'nfs-pvc.yaml' on the services machine having the following content:
+Create a file 'nfs-pvc.yaml' on the bastion machine having the following content:
 
 ```
-[root@services ~]# vim /root/openshift/nfs-configuration/nfs-pvc.yaml
+[root@bastion ~]# vim /root/openshift/nfs-configuration/nfs-pvc.yaml
 ```
 
 ```yam
@@ -210,11 +210,11 @@ spec:
 Now, create the PV:
 
 ```
-[root@services ~]# oc create -f /root/openshift/nfs-configuration/nfs-pv.yaml
+[root@bastion ~]# oc create -f /root/openshift/nfs-configuration/nfs-pv.yaml
 ```
 
 ```
-[root@services ~]# oc get pv
+[root@bastion ~]# oc get pv
 ```
 
 ```
@@ -225,19 +225,19 @@ nfs-pv 1Gi RWX Retain Available
 We will now create an example project and import the PVC. The PVC should get bound to the existing PV:
 
 ```
-[root@services ~]# oc new-project pvctest
+[root@bastion ~]# oc new-project pvctest
 ```
 
 ```
-[root@services ~]# oc status
+[root@bastion ~]# oc status
 ```
 
 ```
-[root@services ~]# oc create -f /root/openshift/nfs-configuration/nfs-pvc.yaml
+[root@bastion ~]# oc create -f /root/openshift/nfs-configuration/nfs-pvc.yaml
 ```
 
 ```
-[root@services ~]# oc get pvc
+[root@bastion ~]# oc get pvc
 ```
 
 ```
@@ -246,7 +246,7 @@ test-pvc Bound nfs-pv 1Gi RWX 20h
 ```
 
 ```
-[root@services ~]# oc get pv
+[root@bastion ~]# oc get pv
 ```
 
 ```
@@ -261,7 +261,7 @@ TODO: clean-up the above created ressources
 Create a file 'registry-pv.yaml' having the following content and load it into the cluster using `oc create -f registry-pv.yaml`.
 
 ```
-[root@services ~]# vim /root/openshift/nfs-configuration/registry-pv.yaml
+[root@bastion ~]# vim /root/openshift/nfs-configuration/registry-pv.yaml
 ```
 
 ```yaml
@@ -277,12 +277,12 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     path: /data/nfs/sys-vols/registry
-    server: services.hX.rhaw.io
+    server: bastion.hX.rhaw.io
     readOnly: false
 ```
 
 ```
-[root@services ~]# oc create -f /root/openshift/nfs-configuration/registry-pv.yaml
+[root@bastion ~]# oc create -f /root/openshift/nfs-configuration/registry-pv.yaml
 ```
 
 The storage for the registry is defined in the config of the registry operator.
@@ -290,25 +290,25 @@ The storage for the registry is defined in the config of the registry operator.
 Remove any existing storage definition. Remember we have modified during installation the registry to use 'emptyDir', i.e., ephemeral storage. The following command removes the storage definition:
 
 ```
-[root@services ~]# oc patch configs.imageregistry.operator.openshift.io cluster --type json --patch '[{ "op": "remove", "path": "/spec/storage" }]'
+[root@bastion ~]# oc patch configs.imageregistry.operator.openshift.io cluster --type json --patch '[{ "op": "remove", "path": "/spec/storage" }]'
 ```
 
 Now add a persistent storage with a PVC storage definition.
 
 ```
-[root@services ~]# oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}'
+[root@bastion ~]# oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"pvc":{"claim":""}}}}'
 ```
 
 Watch the output of
 
 ```
-[root@services ~]# oc get clusteroperator image-registry
+[root@bastion ~]# oc get clusteroperator image-registry
 ```
 
 Once 'progressing' moves to 'false', the operator has updated the rolled-out registry, and a registry PVC has been created. That PVC should have been bound to the above created PV.
 
 ```
-[root@services ~]# oc get pv
+[root@bastion ~]# oc get pv
 ```
 
 ```
@@ -329,23 +329,23 @@ See as well [Monitoring - Configuring persistent storage](https://docs.openshift
 Check whether the cluster-monitoring-config ConfigMap object exists:
 
 ```
-[root@services ~]# oc -n openshift-monitoring get configmap cluster-monitoring-config
+[root@bastion ~]# oc -n openshift-monitoring get configmap cluster-monitoring-config
 ```
 
 If it does not exist, create it:
 
 ```
-[root@services ~]# cd /root/openshift/nfs-configuration/
+[root@bastion ~]# cd /root/openshift/nfs-configuration/
 ```
 
 ```
-[root@services ~]# oc -n openshift-monitoring create configmap cluster-monitoring-config
+[root@bastion ~]# oc -n openshift-monitoring create configmap cluster-monitoring-config
 ```
 
 Edit the created config map using `oc -n openshift-monitoring edit configmap cluster-monitoring-config ` and put the following data section
 
 ```
-[root@services ~]# oc -n openshift-monitoring edit configmap cluster-monitoring-config
+[root@bastion ~]# oc -n openshift-monitoring edit configmap cluster-monitoring-config
 ```
 
 ```yaml
@@ -382,7 +382,7 @@ We now have to ensure, Persistent Volumes (PVs) are ready to be claimed by the P
 Check the PVCs created by the configuration change.
 
 ```
-[root@services ~]# oc get pvc -n openshift-monitoring
+[root@bastion ~]# oc get pvc -n openshift-monitoring
 ```
 
 ```
@@ -399,7 +399,7 @@ There are 5 PVCs created which are yet missing the required PVs. We now prepare 
 Inspect one of the PVCs:
 
 ```
-[root@services ~]# oc get pvc prometheus-pvc-prometheus-k8s-0 -o yaml
+[root@bastion ~]# oc get pvc prometheus-pvc-prometheus-k8s-0 -o yaml
 ```
 
 ```yaml
@@ -438,7 +438,7 @@ Create the PV YAML definitions.
 Create two YAML files for the Prometheus PVs as follows, pointing to the NFS server and respective shares '.../monitoring/p-0' and '.../monitoring/p-1' as follows:
 
 ```
-[root@services ~]# vim /root/openshift/nfs-configuration/m-pv0.yaml
+[root@bastion ~]# vim /root/openshift/nfs-configuration/m-pv0.yaml
 ```
 
 ```yaml
@@ -456,12 +456,12 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     path: /data/nfs/sys-vols/monitoring/p-0
-    server: services.hX.rhaw.io
+    server: bastion.hX.rhaw.io
     readOnly: false
 ```
 
 ```
-[root@services ~]# vim /root/openshift/nfs-configuration/m-pv1.yaml
+[root@bastion ~]# vim /root/openshift/nfs-configuration/m-pv1.yaml
 ```
 
 ```yaml
@@ -479,14 +479,14 @@ spec:
  persistentVolumeReclaimPolicy: Retain
  nfs:
    path: /data/nfs/sys-vols/monitoring/p-1
-   server: services.hX.rhaw.io
+   server: bastion.hX.rhaw.io
    readOnly: false
 ```
 
 Create three YAML files for the AlertManager PVs as follows, pointing to the NFS server and respective shares '.../monitoring/a-0' to '.../monitoring/a-2' as follows:
 
 ```
-[root@services ~]# vim /root/openshift/nfs-configuration/alert-pv0.yaml
+[root@bastion ~]# vim /root/openshift/nfs-configuration/alert-pv0.yaml
 ```
 
 ```yaml
@@ -504,12 +504,12 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     path: /data/nfs/sys-vols/monitoring/a-0
-    server: services.hX.rhaw.io
+    server: bastion.hX.rhaw.io
     readOnly: false
 ```
 
 ```
-[root@services ~]# vim /root/openshift/nfs-configuration/alert-pv1.yaml
+[root@bastion ~]# vim /root/openshift/nfs-configuration/alert-pv1.yaml
 ```
 
 ```yaml
@@ -527,12 +527,12 @@ spec:
  persistentVolumeReclaimPolicy: Retain
  nfs:
    path: /data/nfs/sys-vols/monitoring/a-1
-   server: services.hX.rhaw.io
+   server: bastion.hX.rhaw.io
    readOnly: false
 ```
 
 ```
-[root@services ~]# vim /root/openshift/nfs-configuration/alert-pv2.yaml
+[root@bastion ~]# vim /root/openshift/nfs-configuration/alert-pv2.yaml
 ```
 
 ```yaml
@@ -550,7 +550,7 @@ spec:
  persistentVolumeReclaimPolicy: Retain
  nfs:
  path: /data/nfs/sys-vols/monitoring/a-2
- server: services.hX.rhaw.io
+ server: bastion.hX.rhaw.io
  readOnly: false
 ```
 
@@ -561,21 +561,21 @@ Remember to not only adjust the path on the NFS server but as well the PV name i
 Now import the PV using `oc create -f filename.yaml` for each of the PV files created.
 
 ```
-[root@services ~]# oc create -f /root/openshift/nfs-configuration/alert-pv0.yaml
+[root@bastion ~]# oc create -f /root/openshift/nfs-configuration/alert-pv0.yaml
 ```
 
 ```
-[root@services ~]# oc create -f /root/openshift/nfs-configuration/alert-pv1.yaml
+[root@bastion ~]# oc create -f /root/openshift/nfs-configuration/alert-pv1.yaml
 ```
 
 ```
-[root@services ~]# oc create -f /root/openshift/nfs-configuration/alert-pv2.yaml
+[root@bastion ~]# oc create -f /root/openshift/nfs-configuration/alert-pv2.yaml
 ```
 
 Check the PVCs (or PVs respectively) in the system to ensure the PVCs get bound.
 
 ```
-[root@services ~]# oc get pvc -n openshift-monitoring
+[root@bastion ~]# oc get pvc -n openshift-monitoring
 ```
 
 ```
@@ -604,13 +604,13 @@ Reference: [Product Documentation - Uninstalling Cluster Logging](https://docs.o
 Use the following command to remove everything generated during the deployment.
 
 ```
-[root@services ~]# oc delete clusterlogging instance -n openshift-logging
+[root@bastion ~]# oc delete clusterlogging instance -n openshift-logging
 ```
 
-This will remove all pods, deplyoments, services, routes. Watch the removal ov objects using `oc get all -n openshift-logging`. Only the cluster operator will remain:
+This will remove all pods, deplyoments, bastion, routes. Watch the removal ov objects using `oc get all -n openshift-logging`. Only the cluster operator will remain:
 
 ```
-[root@services ~]# oc get all
+[root@bastion ~]# oc get all
 ```
 
 ```
@@ -627,7 +627,7 @@ replicaset.apps/cluster-logging-operator-5cb9bf8c7f   1         1         1     
 There should not by any PVCs in namespace 'openshift-logging' yet (we did not create any so far), but for sake of completeness, delete the PVCs as well:
 
 ```
-[root@services ~]# oc delete pvc --all -n openshift-logging
+[root@bastion ~]# oc delete pvc --all -n openshift-logging
 ```
 
 ### Install Cluster Logging using Persistent Storage
@@ -674,12 +674,12 @@ spec:
 
 > Note the only difference to the installation before is the change in the 'spec.logStore.elasticsearch.storage' definition.
 
-Wait a few moments and look for the Operator to rollout route, services, deployments, and pods.
+Wait a few moments and look for the Operator to rollout route, bastion, deployments, and pods.
 
 Note that now PVCs got created:
 
 ```
-[root@services ~]# oc get pvc
+[root@bastion ~]# oc get pvc
 NAME                                         STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 elasticsearch-elasticsearch-cdm-y9htwcau-1   Pending                                                     2m26s
 elasticsearch-elasticsearch-cdm-y9htwcau-2   Pending                                                     2m26s
@@ -700,14 +700,14 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   nfs:
     path: /data/nfs/sys-vols/logging/es-1
-    server: services.hX.rhaw.io
+    server: bastion.hX.rhaw.io
     readOnly: false
 ```
 
 After a few seconds, the PVCs should get bound:
 
 ```
-[root@services ~]# oc get pvc
+[root@bastion ~]# oc get pvc
 NAME                                         STATUS   VOLUME               CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 elasticsearch-elasticsearch-cdm-y9htwcau-1   Bound    elasticsearch-pv-1   20Gi       RWO                           3m34s
 elasticsearch-elasticsearch-cdm-y9htwcau-2   Bound    elasticsearch-pv-2   20Gi       RWO                           3m34s

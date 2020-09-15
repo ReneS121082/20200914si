@@ -56,7 +56,7 @@ First we need to list all vm's:
 [root@h12 ~]# virsh list --all
  Id    Name                           State
 ----------------------------------------------------
- 1     services.h12.rhaw.io           running
+ 1     bastion.h12.rhaw.io           running
  -     bootstrap.hX.rhaw.io           shut off
  -     master01.hX.rhaw.io            shut off
  -     master02.hX.rhaw.io            shut off
@@ -126,7 +126,7 @@ Now we can power on all our virtual machines with the command:
 You can observe the installation process if you access the bootstrap node from your service machine with the command:
 
 ```
-[root@services ~]# ssh core@bootstrap.ocp4.hX.rhaw.io
+[root@bastion ~]# ssh core@bootstrap.ocp4.hX.rhaw.io
 ```
 
 After done this there is during the installation process a way of executing a journalctl command to observe this process.
@@ -134,15 +134,15 @@ After done this there is during the installation process a way of executing a jo
 To check the cluster is up and running type in the following command:
 
 ```
-[root@services ~]# export KUBECONFIG=/root/ocp4/auth/kubeconfig
+[root@bastion ~]# export KUBECONFIG=/root/ocp4/auth/kubeconfig
 ```
 
 ```
-[root@services ~]# oc whoami
+[root@bastion ~]# oc whoami
 ```
 
 ```
-[root@services ~]# oc get nodes
+[root@bastion ~]# oc get nodes
 NAME       STATUS   ROLES           AGE   VERSION
 master01   Ready    master,worker   10m   v1.16.2
 master02   Ready    master,worker   10m   v1.16.2
@@ -158,7 +158,7 @@ You should get an output of six machines in state Ready.
 When you add machines to a cluster, two pending certificates signing request (CSRs) are generated for each machine that you added. You must verify that these CSRs are approved or, if necessary, approve them yourself.
 
 ```
-[root@services ~]# oc get nodes
+[root@bastion ~]# oc get nodes
 NAME      STATUS    ROLES           AGE   VERSION
 master01  Ready     master,worker   10m   v1.16.2
 master02  Ready     master,worker   10m   v1.16.2
@@ -172,7 +172,7 @@ The output lists all of the machines that we created.
 Now we need to review the pending certificate signing requests (CSRs) and ensure that the you see a client and server request with `Pending` or `Approved` status for each machine that you added to the cluster:
 
 ```
-[root@services ~]# oc get csr
+[root@bastion ~]# oc get csr
 ```
 
 ```
@@ -189,20 +189,20 @@ csr-c57lv   5m26s   system:node:ip-10-0-95-157.us-east-2.compute.internal       
 Now we need to approve pending certificates:
 
 ```
-[root@services ~]# oc adm certificate approve csr-bfd72
+[root@bastion ~]# oc adm certificate approve csr-bfd72
 ```
 
 Hint:
 To approve all pending certificates run the folloing command:
 
 ```
-[root@services ~]# oc get csr -o name | xargs oc adm certificate approve
+[root@bastion ~]# oc get csr -o name | xargs oc adm certificate approve
 ```
 
 After that we can check the csr status again and validate that they are all "Approved,Issued":
 
 ```
-[root@services ~]# oc get csr
+[root@bastion ~]# oc get csr
 ```
 
 ## Intermediate Image Registry Storage Configuration
@@ -216,7 +216,7 @@ After we complete the operator configuration, you can finish installing the clus
 We need to confirm that all components are up and running.
 
 ```
-[root@services ~]# watch -n5 oc get clusteroperators
+[root@bastion ~]# watch -n5 oc get clusteroperators
 NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
 authentication                             4.3.8     True        False         False      4m41s
 cloud-credential                           4.3.8     True        False         False      25m

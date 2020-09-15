@@ -18,7 +18,7 @@ The namespace 'openshift-logging' will be later on used by the operators to roll
 Create a Namespace for the Elasticsearch Operator (for example namespace-es.yaml)
 
 ```sh
-[root@services ~]# vim namespace-es.yaml
+[root@bastion ~]# vim namespace-es.yaml
 ```
 
 ```yaml
@@ -34,14 +34,14 @@ metadata:
 ```
 
 ```sh
-[root@services ~]# oc create -f namespace-es.yaml
+[root@bastion ~]# oc create -f namespace-es.yaml
 namespace/openshift-operators-redhat created
 ```
 
 Create a Namespace for the Cluster Logging Operator (for example, namespace-logging.yaml)
 
 ```sh
-[root@services ~]# vim namespace-logging.yaml
+[root@bastion ~]# vim namespace-logging.yaml
 ```
 
 ```yaml
@@ -57,7 +57,7 @@ metadata:
 ```
 
 ```sh
-[root@services ~]# oc create -f namespace-logging.yaml
+[root@bastion ~]# oc create -f namespace-logging.yaml
 namespace/openshift-logging created
 ```
 
@@ -66,7 +66,7 @@ namespace/openshift-logging created
 Create two Operator Group object YAML files (for example, og-es.yaml and og-logging.yaml) for the Elasticsearch operator
 
 ```sh
-[root@services ~]# vim og-es.yaml
+[root@bastion ~]# vim og-es.yaml
 ```
 
 ```yaml
@@ -79,14 +79,14 @@ spec: {}
 ```
 
 ```sh
-[root@services ~]#oc create -f og-es.yaml
+[root@bastion ~]#oc create -f og-es.yaml
 operatorgroup.operators.coreos.com/openshift-operators-redhat created
 ```
 
 and
 
 ```sh
-[root@services ~]# vim og-logging.yaml
+[root@bastion ~]# vim og-logging.yaml
 ```
 
 ```yaml
@@ -101,21 +101,21 @@ spec:
 ```
 
 ```
-[root@services ~]# oc create -f og-loging.yaml
+[root@bastion ~]# oc create -f og-loging.yaml
 operatorgroup.operators.coreos.com/openshift-logging created
 ```
 
 Use the following command to get the channel value required for the next step.
 
 ```sh
-[root@services ~]# oc get packagemanifest elasticsearch-operator -n openshift-marketplace -o jsonpath='{.status.defaultChannel}'
+[root@bastion ~]# oc get packagemanifest elasticsearch-operator -n openshift-marketplace -o jsonpath='{.status.defaultChannel}'
 4.3
 ```
 
 Create a Subscription object YAML file (for example, operator-sub-es.yaml) to subscribe a Namespace to an Operator Put channel value into the file.
 
 ```sh
-[root@services ~]# vim operator-sub-es.yaml
+[root@bastion ~]# vim operator-sub-es.yaml
 ```
 
 ```yaml
@@ -133,21 +133,21 @@ spec:
 ```
 
 ```sh
-[root@services ~]# oc create -f operator-sub-es.yaml
+[root@bastion ~]# oc create -f operator-sub-es.yaml
 subscription.operators.coreos.com/elasticsearch-9qbmc created
 ```
 
 Change to the openshift-operators-redhat project
 
 ```sh
-[root@services ~]# oc project openshift-operators-redhat
+[root@bastion ~]# oc project openshift-operators-redhat
 Now using project "openshift-operators-redhat" on server "https://api.ocp4.h1.rhaw.io:6443".
 ```
 
 Create a Role-based Access Control (RBAC) object file (for example, rbac-es.yaml) including a role and a rolebinding to grant Prometheus permission to access the openshift-operators-redhat namespace.
 
 ```sh
-[root@services ~]# vim rbac-es.yaml
+[root@bastion ~]# vim rbac-es.yaml
 ```
 
 ```yaml
@@ -160,7 +160,7 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - services
+  - bastion
   - endpoints
   - pods
   verbs:
@@ -184,7 +184,7 @@ subjects:
 ```
 
 ```sh
-[root@services ~]# oc create -f rbac-es.yaml
+[root@bastion ~]# oc create -f rbac-es.yaml
 role.rbac.authorization.k8s.io/prometheus-k8s created
 rolebinding.rbac.authorization.k8s.io/prometheus-k8s created
 ```
@@ -194,21 +194,21 @@ rolebinding.rbac.authorization.k8s.io/prometheus-k8s created
 Change to the openshift-logging project:
 
 ```sh
-[root@services ~]# oc project openshift-logging
+[root@bastion ~]# oc project openshift-logging
 Now using project "openshift-logging" on server "https://api.ocp4.h1.rhaw.io:6443".
 ```
 
 Use the following command to get the channel value required for the next step.
 
 ```sh
-[root@services ~]# oc get packagemanifest cluster-logging -n openshift-marketplace -o jsonpath='{.status.defaultChannel}'
+[root@bastion ~]# oc get packagemanifest cluster-logging -n openshift-marketplace -o jsonpath='{.status.defaultChannel}'
 4.3
 ```
 
 Create a Subscription object YAML file (for example, operator-sub-logging.yaml) to subscribe a Namespace to an Operator. Put the channel value into the file.
 
 ```sh
-[root@services ~]# vim operator-sub-logging.yaml
+[root@bastion ~]# vim operator-sub-logging.yaml
 ```
 
 ```yaml
@@ -226,7 +226,7 @@ spec:
 ```
 
 ```sh
-[root@services ~]# oc create -f operator-sub-logging.yaml
+[root@bastion ~]# oc create -f operator-sub-logging.yaml
 subscription.operators.coreos.com/cluster-logging created
 ```
 
@@ -237,7 +237,7 @@ Once the steps for the Operator installation are executed, the operators incl. t
 Check the existence of the operators
 
 ```sh
-[root@services ~]# oc get clusterserviceversion
+[root@bastion ~]# oc get clusterserviceversion
 NAME                                         DISPLAY                  VERSION               REPLACES   PHASE
 clusterlogging.4.3.10-202004010435           Cluster Logging          4.3.10-202004010435              Succeeded
 elasticsearch-operator.4.3.10-202003311428   Elasticsearch Operator   4.3.10-202003311428              Succeeded
@@ -246,13 +246,13 @@ elasticsearch-operator.4.3.10-202003311428   Elasticsearch Operator   4.3.10-202
 Check existence of pods for both operators
 
 ```sh
-[root@services ~]# oc get pods -n openshift-operators-redhat
+[root@bastion ~]# oc get pods -n openshift-operators-redhat
 NAME                                      READY   STATUS    RESTARTS   AGE
 elasticsearch-operator-55866cfc99-fn4qx   1/1     Running   0          5m54s
 ```
 
 ```sh
-[root@services ~]# oc get pods -n openshift-logging
+[root@bastion ~]# oc get pods -n openshift-logging
 NAME                                        READY   STATUS    RESTARTS   AGE
 cluster-logging-operator-86c85c5564-prf4b   1/1     Running   0          118s
 ```
@@ -260,7 +260,7 @@ cluster-logging-operator-86c85c5564-prf4b   1/1     Running   0          118s
 Check existance of the Custom Ressource Definition (CRD) objects for logging
 
 ```sh
-[root@services ~]# oc get crd | grep -e clusterloggings -e elasticsearches
+[root@bastion ~]# oc get crd | grep -e clusterloggings -e elasticsearches
 clusterloggings.logging.openshift.io                        2020-04-08T21:50:23Z
 elasticsearches.logging.openshift.io                        2020-04-08T21:45:46Z
 ```
@@ -277,7 +277,7 @@ We initially leave the storage definition empty (storage: {}) to rollout Elastic
 > Note: We rollout only 2 ElasticSearch replicas on 2 nodes and configure ElasticSearch for a minimal memory requests (2GB rather than the default 16 GB) due to the available resources in our workshop environment.
 
 ```sh
-[root@services ~]# vim cust-resource-def-logging.yaml
+[root@bastion ~]# vim cust-resource-def-logging.yaml
 ```
 
 ```yaml
@@ -321,14 +321,14 @@ spec:
 ```
 
 ```sh
-[root@services ~]# oc create -f cust-resource-def-logging.yaml
+[root@bastion ~]# oc create -f cust-resource-def-logging.yaml
 clusterlogging.logging.openshift.io/instance created
 ```
 
-Wait a few moments and look for the Operator to rollout route, services, deployments, and pods:
+Wait a few moments and look for the Operator to rollout route, bastion, deployments, and pods:
 
 ```sh
-[root@services ~]# oc get all
+[root@bastion ~]# oc get all
 NAME                                                READY   STATUS    RESTARTS   AGE
 pod/cluster-logging-operator-86c85c5564-prf4b       1/1     Running   0          36m
 pod/elasticsearch-cdm-jgtzices-1-757564f48d-qd9wp   2/2     Running   0          29m
@@ -371,7 +371,7 @@ replicaset.apps/kibana-78b7f8f776                         0         0         0 
 NAME                    SCHEDULE     SUSPEND   ACTIVE   LAST SCHEDULE   AGE
 cronjob.batch/curator   30 3 * * *   False     0        <none>          29m
 
-NAME                              HOST/PORT                                       PATH   SERVICES   PORT    TERMINATION          WILDCARD
+NAME                              HOST/PORT                                       PATH   bastion   PORT    TERMINATION          WILDCARD
 route.route.openshift.io/kibana   kibana-openshift-logging.apps.ocp4.h1.rhaw.io          kibana     <all>   reencrypt/Redirect   None
 ```
 

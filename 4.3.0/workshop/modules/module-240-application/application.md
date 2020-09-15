@@ -64,7 +64,7 @@ Next we need to create a route so we can access this application from the outsid
 
 - Enter `workshop-terminal` for the name of the route, leave the hostname and path the default
 
-- Select `workshop-terminal` from the list of services in the `Service` menu
+- Select `workshop-terminal` from the list of bastion in the `Service` menu
 
 - Select the only port in the `Target Port` drop down (should be port 10080 --> 10080), like this:
 

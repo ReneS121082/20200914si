@@ -105,7 +105,7 @@ For reference, labels are used as a mechanism to tag certain information onto a 
 
 ### The Cluster Operator
 
-The cluster version operator is the core of what defines an OpenShift deployment . The cluster version operator pod(s) contains the set of manifests which are used to deploy, updated, and/or manage the OpenShift services in the cluster. This operator ensures that the other services, also deployed as operators, are at the version which matches the release definition and takes action to remedy discrepancies when necessary.
+The cluster version operator is the core of what defines an OpenShift deployment . The cluster version operator pod(s) contains the set of manifests which are used to deploy, updated, and/or manage the OpenShift bastion in the cluster. This operator ensures that the other bastion, also deployed as operators, are at the version which matches the release definition and takes action to remedy discrepancies when necessary.
 
 ```
 $ oc get deployments -n openshift-cluster-version
@@ -544,7 +544,7 @@ total 2648
 -r--r--r--. 1 root root    769 Jan 21 19:21 0000_50_insights-operator_07-servicemonitor.yaml
 -r--r--r--. 1 root root    399 Jan 21 19:28 0000_50_olm_00-namespace.yaml
 -r--r--r--. 1 root root    743 Jan 21 19:28 0000_50_olm_01-olm-operator.serviceaccount.yaml
--r--r--r--. 1 root root    814 Jan 21 19:28 0000_50_olm_02-services.yaml
+-r--r--r--. 1 root root    814 Jan 21 19:28 0000_50_olm_02-bastion.yaml
 -r--r--r--. 1 root root  35382 Jan 21 19:28 0000_50_olm_03-clusterserviceversion.crd.yaml
 -r--r--r--. 1 root root   2095 Jan 21 19:28 0000_50_olm_04-installplan.crd.yaml
 -r--r--r--. 1 root root  91995 Jan 21 19:28 0000_50_olm_05-subscription.crd.yaml

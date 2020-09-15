@@ -5,7 +5,7 @@ If the image-registry operator is not available after installation, we must conf
 First we check if we do not have a registry pod:
 
 ```sh
-[root@services ~]# oc get pod -n openshift-image-registry
+[root@bastion ~]# oc get pod -n openshift-image-registry
 NAME READY STATUS RESTARTS AGE
 cluster-image-registry-operator-56f5f56b8-ssjxj 2/2 Running 0 6m40s
 ```
@@ -13,21 +13,21 @@ cluster-image-registry-operator-56f5f56b8-ssjxj 2/2 Running 0 6m40s
 If no image-registry pod is showing up, we need to patch the image registry operator with the following command to use local storage:
 
 ```sh
-[root@services ~]# oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
+[root@bastion ~]# oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
 ```
 
 On platforms that do not provide shareable object storage, the OpenShift Image Registry Operator bootstraps itself as `Removed`. This allows openshift-installer to complete installations on these platform types.
 After installation, you must edit the Image Registry Operator configuration to switch the ManagementState from `Removed` to `Managed`.
 
 ```sh
-[root@services ~]# oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'
+[root@bastion ~]# oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'
 config.imageregistry.operator.openshift.io/cluster patched
 ```
 
 Now we can watch the creation of the image regisrty pods:
 
 ```sh
-[root@services ~]# watch oc get pod -n openshift-image-registry
+[root@bastion ~]# watch oc get pod -n openshift-image-registry
 NAME                                              READY   STATUS              RESTARTS   AGE
 cluster-image-registry-operator-56f5f56b8-ssjxj   2/2     Running             0          8m34s
 image-registry-57944b948b-42jvh                   0/1     ContainerCreating   0          6s

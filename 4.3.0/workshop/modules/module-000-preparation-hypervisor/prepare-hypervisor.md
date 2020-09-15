@@ -59,7 +59,7 @@ Please execute the following command on your Hypervisor Machine:
 
 ## TMUX:
 
-> While not required it is recommended to run commands remotely on the hypervisor machine and later on on the services machine using a terminal multiplexer such as 'tmux'. This prevents terminal sessions to get lost in case of connection interruptions.
+> While not required it is recommended to run commands remotely on the hypervisor machine and later on on the bastion machine using a terminal multiplexer such as 'tmux'. This prevents terminal sessions to get lost in case of connection interruptions.
 
 Then simply start a session by:
 
@@ -296,7 +296,7 @@ After we have done this we can copy our iso image for rhel 8 to the iso storage 
 
 ### RHEL ISO:
 
-Before we start our installation we need to ensure that we have downloaded rhel-8.1-x86_64-dvd.iso to /mnt/ocp_isos/rhel-8.1-x86_64-dvd.iso. In our Workshop this has already been done. If you are doing this on your own download the rhel 8.1 iso from RedHat and place it in our ocp_isos directory. If you rename the iso file adjust the virt-install.sh for services machine and workstation accordingly
+Before we start our installation we need to ensure that we have downloaded rhel-8.1-x86_64-dvd.iso to /mnt/ocp_isos/rhel-8.1-x86_64-dvd.iso. In our Workshop this has already been done. If you are doing this on your own download the rhel 8.1 iso from RedHat and place it in our ocp_isos directory. If you rename the iso file adjust the virt-install.sh for bastion machine and workstation accordingly
 
 ### Create VM Disk:
 
@@ -308,7 +308,7 @@ To create the disk use this command in the directory of the images storage pool:
 
 For the environment an virtual network is needed.
 
-This network needs to be a NAT network with no DHCP activated. The DHCP server will be installed later on the services node.
+This network needs to be a NAT network with no DHCP activated. The DHCP server will be installed later on the bastion node.
 
 Please choose your domain name e.g. hX.rhaw.io and a proper IP adress range. This range should not be outside your KVM Host available.
 
@@ -358,18 +358,18 @@ After we have created the network we should now create our virtual machines.
 
 To make things easier we can create the two virtual machines we need for later, with the commands below, this will create the two needed machines, install base software on them with kickstart.
 
-### Services Virtual Machine:
+### bastion Virtual Machine:
 
 ```
-[root@hypervisor ~]# /root/openshift-4-gls-workshop/4.2.14/files/installations-scripts/hypervisor.hX.rhaw.io/04-hypervisor-virt-install-services.sh
+[root@hypervisor ~]# /root/openshift-4-gls-workshop/4.2.14/files/installations-scripts/hypervisor.hX.rhaw.io/04-hypervisor-virt-install-bastion.sh
 ```
 
-Installation will run in the foreground. After completion you can login using into the services machine with username: root and password redhat.
+Installation will run in the foreground. After completion you can login using into the bastion machine with username: root and password redhat.
 You can close the connection typing "^]".
 
 The following listing show the kickstart parameters used by virt-install.
 
-## services.hX.rhaw.io.ks
+## bastion.hX.rhaw.io.ks
 
 ```
 #version=RHEL8
@@ -388,7 +388,7 @@ lang en_US.UTF-8
 
 # Network information
 network  --bootproto=static --device=ens3 --gateway=192.168.100.1 --ip=192.168.100.254 --nameserver=192.168.100.1 --netmask=255.255.255.0 --ipv6=auto --activate
-network  --hostname=services.hX.rhaw.io
+network  --hostname=bastion.hX.rhaw.io
 repo --name="AppStream" --baseurl=file:///run/install/repo/AppStream
 # Root password redhat
 # python -c 'import crypt,getpass;pw=getpass.getpass();print(crypt.crypt(pw) if (pw==getpass.getpass("Confirm: ")) else exit())'
@@ -398,8 +398,8 @@ rootpw --iscrypted $6$LwMuSOzhl/mBzGx.$4vco9HD/QpJfbkYi33HU8Kg0gi0McxTHe0RPt1pRT
 firstboot --disable
 # Do not configure the X Window System
 skipx
-# System services
-services --disabled="chronyd"
+# System bastion
+bastion --disabled="chronyd"
 # System timezone
 timezone Europe/Amsterdam --isUtc --nontp
 # Student password student
@@ -435,27 +435,27 @@ container-selinux
 
 ## Import already provisioned virtual machine images as new virtual machine:
 
-If the services and workstation machines are already provisioned, then you just need to create them with:
+If the bastion and workstation machines are already provisioned, then you just need to create them with:
 
-### Services Virtual Machine:
-
-```
-[root@hypervisor ~]# virt-install -n services.hX.rhaw.io --description "Services Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --disk path=/mnt/ocp_images/services.qcow2,bus=virtio,size=50 --graphics vnc,port=5910 --import --network network=ocp4-network
-```
-
-### Services Virtual Machine:
-
-Services Machine is configured as follows:
+### bastion Virtual Machine:
 
 ```
-hostname: services.hX.rhaw.io
+[root@hypervisor ~]# virt-install -n bastion.hX.rhaw.io --description "bastion Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --disk path=/mnt/ocp_images/bastion.qcow2,bus=virtio,size=50 --graphics vnc,port=5910 --import --network network=ocp4-network
+```
+
+### bastion Virtual Machine:
+
+bastion Machine is configured as follows:
+
+```
+hostname: bastion.hX.rhaw.io
 ip address: 192.168.100.254
 netmask:    255.255.255.0
 gateway:    192.168.100.1
 dns server: 192.168.100.1
 ```
 
-> Important: In this workshop the services  virtual machine is already provisioned. So there is no need to create them.
+> Important: In this workshop the bastion  virtual machine is already provisioned. So there is no need to create them.
 
 > In these examples we will create the virtual disks, with the virt-install command. This will consume the complete storage defined in the virt-install options. If we want to save space we need to create the virtual disks images before with the qemu command provided, and then change the virt-install command options from --disk path=PATH to --import=PATH.
 
@@ -473,4 +473,4 @@ def gen_last_half_mac(stem):
 print(gen_last_half_mac('52-54-00'))
 ```
 
-After we have done all the steps above we are ready to configure our services machine in the next module.
+After we have done all the steps above we are ready to configure our bastion machine in the next module.
