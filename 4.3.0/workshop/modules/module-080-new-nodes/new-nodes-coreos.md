@@ -6,7 +6,7 @@ The procedure is quite similar to the installation process.
 
 In our environment first we need to create a new virtual node:
 
-worker 03
+node 07
 
 ```
 virt-install -n node07.hX.rhaw.io --description "node07 Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --noreboot --disk path=/mnt/ocp_images/node07.qcow2,bus=virtio,size=50 --graphics none --pxe --network network=ocp4-network,mac=52:54:00:fe:e5:e9
