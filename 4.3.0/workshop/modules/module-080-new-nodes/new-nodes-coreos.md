@@ -17,7 +17,7 @@ After we have done this, the node will power on and will be pxe booted. After th
 The node will stop after installation and we need to start the node with the command:
 
 ```
-virsh start --domain node07.hX.rhaw.io
+virsh start --domain node07.wks.rhaw.io
 ```
 
 Now we need to do the same steps as in the cluster installation. This steps are:
