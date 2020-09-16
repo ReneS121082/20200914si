@@ -1,4 +1,4 @@
-# Module 04:  NFS Storage
+# Module 07:  NFS Storage
 
 OpenShift Container Platform requires storage for certain internal components. These are
 
@@ -399,7 +399,7 @@ There are 5 PVCs created which are yet missing the required PVs. We now prepare 
 Inspect one of the PVCs:
 
 ```
-[root@bastion ~]# oc get pvc prometheus-pvc-prometheus-k8s-0 -o yaml
+[root@bastion ~]# oc get pvc prometheus-pvc-prometheus-k8s-0 -o yaml -n openshift-monitoring
 ```
 
 ```yaml
@@ -522,8 +522,8 @@ metadata:
 spec:
   capacity:
     storage: 10Gi
- accessModes:
-   - ReadWriteOnce
+  accessModes:
+  - ReadWriteOnce
  persistentVolumeReclaimPolicy: Retain
  nfs:
    path: /data/nfs/sys-vols/monitoring/a-1
@@ -544,7 +544,7 @@ metadata:
  infrapvc: alertmanager
 spec:
  capacity:
- storage: 10Gi
+   storage: 10Gi
  accessModes:
  - ReadWriteOnce
  persistentVolumeReclaimPolicy: Retain
