@@ -539,9 +539,9 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
- name: monitoring-alertmgr-pv-2
- labels:
- infrapvc: alertmanager
+  name: monitoring-alertmgr-pv-2
+  labels:
+    infrapvc: alertmanager
 spec:
   capacity:
     storage: 10Gi
