@@ -9,7 +9,7 @@ In our environment first we need to create a new virtual node:
 worker 03
 
 ```
-virt-install -n node03.hX.rhaw.io --description "node03 Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --noreboot --disk path=/mnt/ocp_images/node03.qcow2,bus=virtio,size=50 --graphics none --pxe --network network=ocp4-network,mac=52:54:00:fe:e5:e3
+virt-install -n node07.hX.rhaw.io --description "node07 Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --noreboot --disk path=/mnt/ocp_images/node07.qcow2,bus=virtio,size=50 --graphics none --pxe --network network=ocp4-network,mac=52:54:00:fe:e5:e9
 ```
 
 After we have done this, the node will power on and will be pxe booted. After that it will fetch the CoreOS image and the related ignition file and will start the installation.
@@ -17,7 +17,7 @@ After we have done this, the node will power on and will be pxe booted. After th
 The node will stop after installation and we need to start the node with the command:
 
 ```
-virsh start --domain node03.hX.rhaw.io
+virsh start --domain node07.hX.rhaw.io
 ```
 
 Now we need to do the same steps as in the cluster installation. This steps are:
@@ -39,7 +39,7 @@ Id    Name                           Status
  30    node02.hX.rhaw.io       laufend
 ```
 
-After the node03 node has been installed we can't see it in the list of nodes:
+After the node07 node has been installed we can't see it in the list of nodes:
 
 ```
 [root@bastion ~]# oc get nodes
@@ -77,7 +77,7 @@ We need a secound round:
 
 ```
 NAME        AGE     REQUESTOR                                                                   CONDITION
-csr-72t87   4s      system:node:node03                                                        Pending
+csr-72t87   4s      system:node:node07                                                        Pending
 csr-f6tsc   20m     system:serviceaccount:openshift-machine-config-operator:node-bootstrapper   Approved,Issued
 csr-lrc8f   5m19s   system:serviceaccount:openshift-machine-config-operator:node-bootstrapper   Approved,Issued
 ```
