@@ -543,15 +543,15 @@ metadata:
  labels:
  infrapvc: alertmanager
 spec:
- capacity:
-   storage: 10Gi
- accessModes:
- - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteOnce
  persistentVolumeReclaimPolicy: Retain
  nfs:
- path: /data/nfs/sys-vols/monitoring/a-2
- server: bastion.hX.rhaw.io
- readOnly: false
+   path: /data/nfs/sys-vols/monitoring/a-2
+   server: bastion.hX.rhaw.io
+   readOnly: false
 ```
 
 Remember to not only adjust the path on the NFS server but as well the PV name in the metadata section.
