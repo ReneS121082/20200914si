@@ -9,7 +9,7 @@ In our environment first we need to create a new virtual node:
 node 07
 
 ```
-virt-install -n node07.hX.rhaw.io --description "node07 Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --noreboot --disk path=/mnt/ocp_images/node07.qcow2,bus=virtio,size=50 --graphics none --pxe --network network=ocp4-network,mac=52:54:00:fe:e5:e9
+virt-install -n node07.hX.rhaw.io --description "node07 Machine for Openshift 4 Cluster" --os-type=Linux --os-variant=rhel7 --ram=8192 --vcpus=4 --noreboot --disk path=/mnt/ocp_images/node07.qcow2,bus=virtio,size=50 --graphics none --pxe --network network=ocp4-network,mac=52:54:00:c5:a7:61
 ```
 
 After we have done this, the node will power on and will be pxe booted. After that it will fetch the CoreOS image and the related ignition file and will start the installation.
